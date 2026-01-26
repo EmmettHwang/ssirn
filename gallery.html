@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-kr="연구 갤러리 | 지기술" data-en="Research Gallery | G-TECH">연구 갤러리 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .gallery-item {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: var(--transition-base);
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--color-primary);
+        }
+        
+        .gallery-item__media {
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            background: #000;
+            position: relative;
+        }
+        
+        .gallery-item__media iframe,
+        .gallery-item__media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .gallery-item__content {
+            padding: 1rem;
+        }
+        
+        .gallery-item__description {
+            color: var(--color-text-muted);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+        
+        .gallery-item__meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+        
+        .add-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 102, 255, 0.4);
+            transition: var(--transition-base);
+            z-index: 100;
+        }
+        
+        .add-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(0, 102, 255, 0.6);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal__content {
+            background: var(--color-bg-light);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal__title {
+            font-size: 1.5rem;
+            color: var(--color-text);
+        }
+        
+        .modal__close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        
+        .modal__close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--color-text);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .btn-cancel:hover {
+            background: var(--color-bg-light);
+        }
+        
+        .btn-submit {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--color-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        
+        .btn-submit:hover {
+            background: #0052cc;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--color-text-muted);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .add-btn {
+                bottom: 1rem;
+                right: 1rem;
+                width: 56px;
+                height: 56px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">
+                <img src="images/logo.png" alt="지기술(G-TECH)" class="nav__logo-img">
+            </a>
+            <button class="nav__toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item">
+                        <a href="index.html" class="nav__link" data-kr="홈" data-en="Home">홈</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="vision.html" class="nav__link" data-kr="비전" data-en="Vision">비전</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="technology.html" class="nav__link" data-kr="SSIRN 기술" data-en="SSIRN Tech">SSIRN 기술</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="products.html" class="nav__link" data-kr="제품" data-en="Products">제품</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="gallery.html" class="nav__link nav__link--active" data-kr="연구 갤러리" data-en="Gallery">연구 갤러리</a>
+                    </li>
+                    <li class="nav__item">
+                        <a href="contact.html" class="nav__link" data-kr="문의" data-en="Contact">문의</a>
+                    </li>
+                </ul>
+                <button class="nav__lang-toggle" id="lang-toggle">
+                    <span class="nav__lang-text">EN</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero hero--small">
+        <div class="hero__bg"></div>
+        <div class="hero__overlay"></div>
+        <div class="container hero__container">
+            <div class="hero__content">
+                <h1 class="hero__title" data-kr="연구 갤러리" data-en="Research Gallery">연구 갤러리</h1>
+                <p class="hero__subtitle" data-kr="지기술의 연구 개발 현장" data-en="G-TECH Research & Development">지기술의 연구 개발 현장</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="section">
+        <div class="container">
+            <div id="empty-state" class="empty-state">
+                <i class="fas fa-image"></i>
+                <p data-kr="아직 갤러리가 비어있습니다" data-en="Gallery is empty">아직 갤러리가 비어있습니다</p>
+                <p data-kr="우측 하단의 + 버튼을 눌러 첫 번째 항목을 추가해보세요" data-en="Click the + button to add your first item">우측 하단의 + 버튼을 눌러 첫 번째 항목을 추가해보세요</p>
+            </div>
+            <div id="gallery-grid" class="gallery-grid"></div>
+        </div>
+    </section>
+
+    <!-- Add Button -->
+    <button class="add-btn" id="add-btn" aria-label="Add item">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Add Modal -->
+    <div class="modal" id="modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2 class="modal__title" data-kr="항목 추가" data-en="Add Item">항목 추가</h2>
+                <button class="modal__close" id="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="add-form">
+                <div class="form-group">
+                    <label data-kr="URL" data-en="URL">URL</label>
+                    <input 
+                        type="url" 
+                        id="item-url" 
+                        placeholder="YouTube URL 또는 이미지 URL"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label data-kr="설명 (선택)" data-en="Description (Optional)">설명 (선택)</label>
+                    <textarea 
+                        id="item-description" 
+                        placeholder="간단한 설명을 입력하세요"
+                    ></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancel-btn" data-kr="취소" data-en="Cancel">취소</button>
+                    <button type="submit" class="btn-submit" data-kr="추가" data-en="Add">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__content">
+                <div class="footer__section">
+                    <img src="images/logo.png" alt="지기술(G-TECH)" class="footer__logo">
+                    <p class="footer__text" data-kr="인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업" data-en="Creating AI that understands, builds, and serves humanity">
+                        인공지능을 이해하고 만들고 활용하여<br>인류에게 도움이 되는 기업
+                    </p>
+                </div>
+                <div class="footer__section">
+                    <h3 class="footer__title" data-kr="연락처" data-en="Contact">연락처</h3>
+                    <ul class="footer__list">
+                        <li><i class="fas fa-envelope"></i> hdh6401@gmail.com</li>
+                        <li><i class="fas fa-phone"></i> 010-2512-6818</li>
+                        <li><i class="fas fa-globe"></i> ssirn.co.kr</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 전남 영암군 금동길 33 지기술타운</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2026 지기술(G-TECH). All rights reserved.</p>
+                <p data-kr="사업자등록번호: 621-78-00335" data-en="Business Registration: 621-78-00335">사업자등록번호: 621-78-00335</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Simple Gallery Manager
+        class SimpleGallery {
+            constructor() {
+                this.items = this.loadItems();
+                this.init();
+            }
+
+            init() {
+                this.render();
+                this.setupEvents();
+            }
+
+            setupEvents() {
+                document.getElementById('add-btn').addEventListener('click', () => this.openModal());
+                document.getElementById('modal-close').addEventListener('click', () => this.closeModal());
+                document.getElementById('cancel-btn').addEventListener('click', () => this.closeModal());
+                document.getElementById('modal').addEventListener('click', (e) => {
+                    if (e.target.id === 'modal') this.closeModal();
+                });
+                document.getElementById('add-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addItem();
+                });
+            }
+
+            openModal() {
+                document.getElementById('modal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                document.getElementById('modal').classList.remove('active');
+                document.body.style.overflow = '';
+                document.getElementById('add-form').reset();
+            }
+
+            isYouTubeUrl(url) {
+                return url.includes('youtube.com') || url.includes('youtu.be');
+            }
+
+            getYouTubeEmbedUrl(url) {
+                const patterns = [
+                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+                    /youtube\.com\/shorts\/([^&\n?#]+)/
+                ];
+
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match && match[1]) {
+                        return `https://www.youtube.com/embed/${match[1]}?mute=1`;
+                    }
+                }
+                return null;
+            }
+
+            addItem() {
+                const url = document.getElementById('item-url').value.trim();
+                const description = document.getElementById('item-description').value.trim();
+
+                if (!url) {
+                    alert('URL을 입력해주세요.');
+                    return;
+                }
+
+                const item = {
+                    id: Date.now(),
+                    url: url,
+                    description: description,
+                    type: this.isYouTubeUrl(url) ? 'video' : 'image',
+                    createdAt: new Date().toISOString()
+                };
+
+                this.items.unshift(item);
+                this.saveItems();
+                this.render();
+                this.closeModal();
+                this.showNotification('추가되었습니다!');
+            }
+
+            deleteItem(id) {
+                if (confirm('삭제하시겠습니까?')) {
+                    this.items = this.items.filter(item => item.id !== id);
+                    this.saveItems();
+                    this.render();
+                    this.showNotification('삭제되었습니다.');
+                }
+            }
+
+            render() {
+                const grid = document.getElementById('gallery-grid');
+                const empty = document.getElementById('empty-state');
+
+                if (this.items.length === 0) {
+                    grid.style.display = 'none';
+                    empty.style.display = 'block';
+                    return;
+                }
+
+                grid.style.display = 'grid';
+                empty.style.display = 'none';
+
+                grid.innerHTML = this.items.map(item => {
+                    let mediaHtml;
+                    if (item.type === 'video') {
+                        const embedUrl = this.getYouTubeEmbedUrl(item.url);
+                        mediaHtml = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    } else {
+                        mediaHtml = `<img src="${item.url}" alt="갤러리 이미지" loading="lazy">`;
+                    }
+
+                    const date = new Date(item.createdAt).toLocaleDateString('ko-KR');
+
+                    return `
+                        <div class="gallery-item">
+                            <div class="gallery-item__media">
+                                ${mediaHtml}
+                            </div>
+                            <div class="gallery-item__content">
+                                ${item.description ? `<p class="gallery-item__description">${this.escapeHtml(item.description)}</p>` : ''}
+                                <div class="gallery-item__meta">
+                                    <span><i class="fas fa-calendar"></i> ${date}</span>
+                                    <button class="delete-btn" onclick="gallery.deleteItem(${item.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            escapeHtml(text) {
+                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+                return text.replace(/[&<>"']/g, m => map[m]);
+            }
+
+            loadItems() {
+                try {
+                    const stored = localStorage.getItem('simple_gallery_items');
+                    return stored ? JSON.parse(stored) : [];
+                } catch (e) {
+                    console.error('Failed to load items:', e);
+                    return [];
+                }
+            }
+
+            saveItems() {
+                try {
+                    localStorage.setItem('simple_gallery_items', JSON.stringify(this.items));
+                } catch (e) {
+                    console.error('Failed to save items:', e);
+                }
+            }
+
+            showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 2rem;
+                    right: 2rem;
+                    background: var(--color-primary);
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease;
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        // Initialize
+        const gallery = new SimpleGallery();
+    </script>
+</body>
+</html>

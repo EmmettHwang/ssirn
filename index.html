@@ -37,6 +37,9 @@
                         <a href="products.html" class="nav__link" data-kr="제품" data-en="Products">제품</a>
                     </li>
                     <li class="nav__item">
+                        <a href="gallery.html" class="nav__link" data-kr="연구 갤러리" data-en="Gallery">연구 갤러리</a>
+                    </li>
+                    <li class="nav__item">
                         <a href="contact.html" class="nav__link" data-kr="문의" data-en="Contact">문의</a>
                     </li>
                 </ul>
@@ -49,8 +52,16 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero__bg">
-            <img src="images/hero-robot-blue.jpg" alt="지기술 휴머노이드 로봇" class="hero__bg-img">
+        <!-- Background Video -->
+        <div class="hero__video-bg">
+            <iframe 
+                id="hero-video"
+                src="https://www.youtube.com/embed/Y8988KBupRw?autoplay=1&mute=1&loop=1&playlist=Y8988KBupRw&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                allowfullscreen
+                style="pointer-events: none;"
+            ></iframe>
             <div class="hero__overlay"></div>
         </div>
         <div class="container hero__container">
@@ -119,10 +130,16 @@
                 <p class="section__subtitle" data-kr="우리의 비전과 기술을 영상으로 만나보세요" data-en="Discover our vision and technology">우리의 비전과 기술을 영상으로 만나보세요</p>
             </div>
             <div class="video-container">
-                <video controls playsinline webkit-playsinline class="video-player">
-                    <source src="https://www.genspark.ai/api/files/s/qIzUqFia" type="video/mp4">
-                    <p data-kr="브라우저가 비디오를 지원하지 않습니다." data-en="Your browser does not support the video tag.">브라우저가 비디오를 지원하지 않습니다.</p>
-                </video>
+                <iframe 
+                    width="100%" 
+                    height="500" 
+                    src="https://www.youtube.com/embed/hUdjXkW9QDA?mute=1" 
+                    title="지기술 소개 영상"
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen
+                    class="video-player">
+                </iframe>
             </div>
         </div>
     </section>

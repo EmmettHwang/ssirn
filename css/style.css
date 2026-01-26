@@ -187,13 +187,44 @@ ul {
     object-position: center;
 }
 
+/* Hero Video Background */
+.hero__video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.hero__video-bg iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;
+    height: 56.25vw; /* 16:9 비율 유지 */
+    min-height: 100vh;
+    min-width: 177.77vh; /* 16:9 비율 유지 */
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* 모바일에서 비디오 크기 최적화 */
+@media (max-width: 768px) {
+    .hero__video-bg iframe {
+        width: 300vw;
+        height: 168.75vw;
+    }
+}
+
 .hero__overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(10, 14, 39, 0.85) 0%, rgba(26, 31, 58, 0.7) 100%);
+    background: linear-gradient(135deg, rgba(10, 14, 39, 0.75) 0%, rgba(26, 31, 58, 0.6) 100%);
     z-index: 2;
 }
 
@@ -403,6 +434,21 @@ ul {
     height: auto;
     display: block;
     background: #000;
+}
+
+/* YouTube iframe styling */
+.video-container iframe {
+    width: 100%;
+    height: 500px;
+    display: block;
+    border: none;
+    border-radius: var(--radius-lg);
+}
+
+@media (max-width: 768px) {
+    .video-container iframe {
+        height: 300px;
+    }
 }
 
 /* Tech Grid */
