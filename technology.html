@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-kr="SSIRN 기술 | 지기술" data-en="SSIRN Technology | G-TECH">SSIRN 기술 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">
+                <img src="images/logo.png" alt="지기술 로고" class="nav__logo-img">
+            </a>
+            <button class="nav__toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html" class="nav__link" data-kr="홈" data-en="Home">홈</a></li>
+                    <li class="nav__item"><a href="vision.html" class="nav__link" data-kr="비전" data-en="Vision">비전</a></li>
+                    <li class="nav__item"><a href="technology.html" class="nav__link nav__link--active" data-kr="SSIRN 기술" data-en="SSIRN Tech">SSIRN 기술</a></li>
+                    <li class="nav__item"><a href="products.html" class="nav__link" data-kr="제품" data-en="Products">제품</a></li>
+                    <li class="nav__item"><a href="contact.html" class="nav__link" data-kr="문의" data-en="Contact">문의</a></li>
+                </ul>
+                <button class="nav__lang-toggle" id="lang-toggle"><span class="nav__lang-text">EN</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero hero--small">
+        <div class="hero__overlay"></div>
+        <div class="container hero__container">
+            <h1 class="hero__title">SSIRN</h1>
+            <p class="hero__subtitle" data-kr="사회적 신호 상호작용 로봇 네트워크" data-en="Social Signal Interaction Robot Network">사회적 신호 상호작용 로봇 네트워크</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title" data-kr="기술 개요" data-en="Technology Overview">기술 개요</h2>
+                <p class="section__subtitle" data-kr="사회적 맥락을 이해하는 지능형 다중 로봇 네트워크" data-en="Intelligent multi-robot network understanding social context">사회적 맥락을 이해하는 지능형 다중 로봇 네트워크</p>
+            </div>
+            <div class="grid grid--2">
+                <div>
+                    <h3 class="card__title" data-kr="핵심 혁신" data-en="Core Innovation">핵심 혁신</h3>
+                    <ul class="card__list" style="margin-top: 1rem;">
+                        <li data-kr="사회적 신호 통합: 인간 활동 패턴, 이벤트, 사회적 맥락 수집" data-en="Social signal integration">사회적 신호 통합: 인간 활동 패턴, 이벤트, 사회적 맥락 수집</li>
+                        <li data-kr="MQTT 기반 다중 로봇 협업 시스템" data-en="MQTT-based multi-robot collaboration">MQTT 기반 다중 로봇 협업 시스템</li>
+                        <li data-kr="예측적 AI: YOLOv11 엣지 AI + 중앙 예측 AI 하이브리드" data-en="Predictive AI hybrid">예측적 AI: YOLOv11 엣지 AI + 중앙 예측 AI 하이브리드</li>
+                        <li data-kr="실시간 WebRTC 통신 (145ms 영상, 112ms 제어)" data-en="Real-time WebRTC">실시간 WebRTC 통신 (145ms 영상, 112ms 제어)</li>
+                    </ul>
+                </div>
+                <div>
+                    <img src="images/unitree-go2-front.jpg" alt="Unitree GO2 로봇" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.3);">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--ssirn">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title" data-kr="성능 지표" data-en="Performance Metrics">성능 지표</h2>
+            </div>
+            <div class="ssirn-grid">
+                <div class="ssirn-card">
+                    <div class="ssirn-card__number">96%</div>
+                    <h4 class="ssirn-card__title" data-kr="AI 정확도" data-en="AI Accuracy">AI 정확도</h4>
+                    <p class="ssirn-card__text">YOLOv11</p>
+                </div>
+                <div class="ssirn-card">
+                    <div class="ssirn-card__number">100%</div>
+                    <h4 class="ssirn-card__title" data-kr="네비게이션" data-en="Navigation">네비게이션</h4>
+                    <p class="ssirn-card__text">ROS2 SLAM/Nav2</p>
+                </div>
+                <div class="ssirn-card">
+                    <div class="ssirn-card__number">145ms</div>
+                    <h4 class="ssirn-card__title" data-kr="영상 지연" data-en="Video Latency">영상 지연</h4>
+                    <p class="ssirn-card__text">WebRTC</p>
+                </div>
+                <div class="ssirn-card">
+                    <div class="ssirn-card__number">26.3</div>
+                    <h4 class="ssirn-card__title">FPS</h4>
+                    <p class="ssirn-card__text" data-kr="실시간 처리" data-en="Real-time">실시간 처리</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title" data-kr="하드웨어 플랫폼" data-en="Hardware Platform">하드웨어 플랫폼</h2>
+            </div>
+            <div class="grid grid--3">
+                <div class="card">
+                    <img src="images/unitree-go2-table.jpg" alt="Unitree GO2" style="border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 class="card__title">Unitree GO2</h3>
+                    <p class="card__text" data-kr="4족 보행 로봇 (70×30×40cm, 15kg, 최대 3.7m/s)" data-en="Quadruped robot">4족 보행 로봇<br>70×30×40cm, 15kg<br>최대 3.7m/s</p>
+                </div>
+                <div class="card">
+                    <img src="images/unitree-go2-rear.jpg" alt="센서 패키지" style="border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 class="card__title" data-kr="센서 패키지" data-en="Sensor Package">센서 패키지</h3>
+                    <p class="card__text" data-kr="4D LiDAR, RGB/Depth 카메라, IMU, 압력 센서" data-en="4D LiDAR, cameras, IMU">4D LiDAR<br>RGB/Depth 카메라<br>IMU, 압력 센서</p>
+                </div>
+                <div class="card">
+                    <img src="images/tablet-monitoring.jpg" alt="모니터링 시스템" style="border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 class="card__title" data-kr="모니터링 시스템" data-en="Monitoring">모니터링 시스템</h3>
+                    <p class="card__text" data-kr="실시간 멀티뷰 모니터링 및 제어" data-en="Real-time multi-view">실시간 멀티뷰<br>모니터링 및 제어</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--video">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title" data-kr="기술 시연 영상" data-en="Technology Demo">기술 시연 영상</h2>
+            </div>
+            <div class="grid grid--2" style="gap: 2rem;">
+                <div>
+                    <h3 class="card__title" data-kr="휴머노이드 로봇 시스템" data-en="Humanoid Robot System">휴머노이드 로봇 시스템</h3>
+                    <div class="video-container" style="margin-top: 1rem;">
+                        <video controls playsinline webkit-playsinline class="video-player">
+                            <source src="https://www.genspark.ai/api/files/s/gGnfq1zQ" type="video/mp4">
+                            <p data-kr="브라우저가 비디오를 지원하지 않습니다." data-en="Video not supported">브라우저가 비디오를 지원하지 않습니다.</p>
+                        </video>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="card__title" data-kr="로봇 상호작용 및 제어" data-en="Robot Interaction">로봇 상호작용 및 제어</h3>
+                    <div class="video-container" style="margin-top: 1rem;">
+                        <video controls playsinline webkit-playsinline class="video-player">
+                            <source src="https://www.genspark.ai/api/files/s/Da0zGDtx" type="video/mp4">
+                            <p data-kr="브라우저가 비디오를 지원하지 않습니다." data-en="Video not supported">브라우저가 비디오를 지원하지 않습니다.</p>
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title" data-kr="4계층 아키텍처" data-en="4-Layer Architecture">4계층 아키텍처</h2>
+            </div>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-card__header">
+                        <i class="fas fa-desktop tech-card__icon"></i>
+                        <h3 class="tech-card__title" data-kr="응용 계층" data-en="Application">응용 계층</h3>
+                    </div>
+                    <p class="tech-card__subtitle" data-kr="대시보드 & 모니터링" data-en="Dashboard & Monitoring">대시보드 & 모니터링</p>
+                    <ul class="tech-card__list">
+                        <li>WebRTC + Discord</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-card__header">
+                        <i class="fas fa-brain tech-card__icon"></i>
+                        <h3 class="tech-card__title" data-kr="사회 신호 처리" data-en="Social Signal">사회 신호 처리</h3>
+                    </div>
+                    <p class="tech-card__subtitle" data-kr="중앙 AI 예측 엔진" data-en="Central AI Engine">중앙 AI 예측 엔진</p>
+                    <ul class="tech-card__list">
+                        <li data-kr="Transformer 시계열 예측" data-en="Transformer prediction">Transformer 시계열 예측</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-card__header">
+                        <i class="fas fa-network-wired tech-card__icon"></i>
+                        <h3 class="tech-card__title" data-kr="다중 로봇 조정" data-en="Multi-Robot">다중 로봇 조정</h3>
+                    </div>
+                    <p class="tech-card__subtitle">MQTT</p>
+                    <ul class="tech-card__list">
+                        <li data-kr="5-10대 로봇 협업" data-en="5-10 robot collaboration">5-10대 로봇 협업</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-card__header">
+                        <i class="fas fa-microchip tech-card__icon"></i>
+                        <h3 class="tech-card__title" data-kr="엣지 AI" data-en="Edge AI">엣지 AI</h3>
+                    </div>
+                    <p class="tech-card__subtitle" data-kr="로봇 레벨 처리" data-en="Robot-level">로봇 레벨 처리</p>
+                    <ul class="tech-card__list">
+                        <li>YOLOv11 + ArUco</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__main">
+                <div class="footer__brand">
+                    <img src="images/logo.png" alt="지기술 로고" class="footer__logo">
+                    <p class="footer__tagline" data-kr="인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업" data-en="Creating AI that serves humanity">인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업</p>
+                </div>
+                <div class="footer__links">
+                    <div class="footer__section">
+                        <h4 class="footer__title" data-kr="연락처" data-en="Contact">연락처</h4>
+                        <ul class="footer__list">
+                            <li><i class="fas fa-envelope"></i><a href="mailto:hdh6401@gmail.com">hdh6401@gmail.com</a></li>
+                            <li><i class="fas fa-phone"></i><a href="tel:010-2512-6818">010-2512-6818</a></li>
+                            <li><i class="fas fa-globe"></i><a href="http://ssirn.co.kr">ssirn.co.kr</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <div class="footer__info">
+                    <p data-kr="주소: 전남 영암군 금동길 33 지기술타운" data-en="Address: 33 Geumdong-gil, Yeongam-gun, Korea">주소: 전남 영암군 금동길 33 지기술타운</p>
+                    <p data-kr="사업자등록번호: 621-78-00335" data-en="Business: 621-78-00335">사업자등록번호: 621-78-00335</p>
+                </div>
+                <p class="footer__copyright">&copy; 2026 <span data-kr="지기술. 모든 권리 보유." data-en="G-TECH. All rights reserved.">지기술. 모든 권리 보유.</span></p>
+            </div>
+        </div>
+    </footer>
+    <button class="back-to-top" id="back-to-top"><i class="fas fa-arrow-up"></i></button>
+    <script src="js/main.js"></script>
+</body>
+</html>

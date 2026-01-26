@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-kr="문의 | 지기술" data-en="Contact | G-TECH">문의 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .contact-hero { text-align: center; padding: 3rem 0; }
+        .contact-hero img { max-width: 200px; margin: 0 auto 2rem; background: rgba(255,255,255,0.95); padding: 16px; border-radius: 12px; }
+        .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin: 3rem 0; }
+        .contact-card { background: var(--color-bg-light); padding: 2rem; border-radius: 12px; text-align: center; border: 1px solid var(--color-border); }
+        .contact-card i { font-size: 2rem; color: var(--color-primary); margin-bottom: 1rem; }
+        .contact-form { max-width: 600px; margin: 0 auto; background: var(--color-bg-light); padding: 2rem; border-radius: 12px; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg); color: var(--color-text); font-family: inherit; }
+        .form-group textarea { min-height: 120px; resize: vertical; }
+        .btn-submit { width: 100%; padding: 14px; background: var(--color-primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-submit:hover { background: #0052cc; }
+    </style>
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo"><img src="images/logo.png" alt="지기술 로고" class="nav__logo-img"></a>
+            <button class="nav__toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html" class="nav__link" data-kr="홈" data-en="Home">홈</a></li>
+                    <li class="nav__item"><a href="vision.html" class="nav__link" data-kr="비전" data-en="Vision">비전</a></li>
+                    <li class="nav__item"><a href="technology.html" class="nav__link" data-kr="SSIRN 기술" data-en="SSIRN Tech">SSIRN 기술</a></li>
+                    <li class="nav__item"><a href="products.html" class="nav__link" data-kr="제품" data-en="Products">제품</a></li>
+                    <li class="nav__item"><a href="contact.html" class="nav__link nav__link--active" data-kr="문의" data-en="Contact">문의</a></li>
+                </ul>
+                <button class="nav__lang-toggle" id="lang-toggle"><span class="nav__lang-text">EN</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero hero--small">
+        <div class="hero__overlay"></div>
+        <div class="container">
+            <div class="contact-hero">
+                <img src="images/logo.png" alt="지기술 로고">
+                <h1 class="hero__title" data-kr="문의하기" data-en="Contact Us">문의하기</h1>
+                <p class="hero__subtitle" data-kr="프로젝트 협력 및 제품 문의를 환영합니다" data-en="We welcome project collaboration and inquiries">프로젝트 협력 및 제품 문의를 환영합니다</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <i class="fas fa-envelope"></i>
+                    <h3 data-kr="이메일" data-en="Email">이메일</h3>
+                    <a href="mailto:hdh6401@gmail.com">hdh6401@gmail.com</a>
+                </div>
+                <div class="contact-card">
+                    <i class="fas fa-phone"></i>
+                    <h3 data-kr="전화" data-en="Phone">전화</h3>
+                    <a href="tel:010-2512-6818">010-2512-6818</a>
+                </div>
+                <div class="contact-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3 data-kr="주소" data-en="Address">주소</h3>
+                    <p data-kr="전남 영암군 금동길 33 지기술타운" data-en="33 Geumdong-gil, Yeongam-gun, Korea">전남 영암군 금동길 33<br>지기술타운</p>
+                </div>
+                <div class="contact-card">
+                    <i class="fas fa-globe"></i>
+                    <h3 data-kr="웹사이트" data-en="Website">웹사이트</h3>
+                    <a href="http://ssirn.co.kr">ssirn.co.kr</a>
+                </div>
+            </div>
+
+            <div class="section__header">
+                <h2 class="section__title" data-kr="프로젝트 문의" data-en="Project Inquiry">프로젝트 문의</h2>
+            </div>
+            <div class="contact-form">
+                <form id="contact-form" action="#" method="post">
+                    <div class="form-group">
+                        <label data-kr="이름 *" data-en="Name *">이름 *</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-kr="이메일 *" data-en="Email *">이메일 *</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label data-kr="전화번호" data-en="Phone">전화번호</label>
+                        <input type="tel" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label data-kr="회사/기관" data-en="Company">회사/기관</label>
+                        <input type="text" name="company">
+                    </div>
+                    <div class="form-group">
+                        <label data-kr="문의 유형 *" data-en="Inquiry Type *">문의 유형 *</label>
+                        <select name="type" required>
+                            <option value="" data-kr="선택하세요" data-en="Select">선택하세요</option>
+                            <option value="project" data-kr="프로젝트 협력" data-en="Project Collaboration">프로젝트 협력</option>
+                            <option value="product" data-kr="제품 문의" data-en="Product Inquiry">제품 문의</option>
+                            <option value="investment" data-kr="투자 문의" data-en="Investment">투자 문의</option>
+                            <option value="other" data-kr="기타" data-en="Other">기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-kr="메시지 *" data-en="Message *">메시지 *</label>
+                        <textarea name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit" data-kr="문의 보내기" data-en="Send Inquiry">문의 보내기</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__main">
+                <div class="footer__brand">
+                    <img src="images/logo.png" alt="지기술 로고" class="footer__logo">
+                    <p class="footer__tagline" data-kr="인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업" data-en="Creating AI that serves humanity">인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업</p>
+                </div>
+                <div class="footer__links">
+                    <div class="footer__section">
+                        <h4 class="footer__title" data-kr="연락처" data-en="Contact">연락처</h4>
+                        <ul class="footer__list">
+                            <li><i class="fas fa-envelope"></i><a href="mailto:hdh6401@gmail.com">hdh6401@gmail.com</a></li>
+                            <li><i class="fas fa-phone"></i><a href="tel:010-2512-6818">010-2512-6818</a></li>
+                            <li><i class="fas fa-globe"></i><a href="http://ssirn.co.kr">ssirn.co.kr</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <div class="footer__info">
+                    <p data-kr="주소: 전남 영암군 금동길 33 지기술타운" data-en="Address: 33 Geumdong-gil, Yeongam-gun, Korea">주소: 전남 영암군 금동길 33 지기술타운</p>
+                    <p data-kr="사업자등록번호: 621-78-00335" data-en="Business: 621-78-00335">사업자등록번호: 621-78-00335</p>
+                </div>
+                <p class="footer__copyright">&copy; 2026 <span data-kr="지기술. 모든 권리 보유." data-en="G-TECH. All rights reserved.">지기술. 모든 권리 보유.</span></p>
+            </div>
+        </div>
+    </footer>
+    <button class="back-to-top" id="back-to-top"><i class="fas fa-arrow-up"></i></button>
+    <script src="js/main.js"></script>
+</body>
+</html>

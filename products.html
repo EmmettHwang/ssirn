@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-kr="제품 | 지기술" data-en="Products | G-TECH">제품 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo"><img src="images/logo.png" alt="지기술 로고" class="nav__logo-img"></a>
+            <button class="nav__toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html" class="nav__link" data-kr="홈" data-en="Home">홈</a></li>
+                    <li class="nav__item"><a href="vision.html" class="nav__link" data-kr="비전" data-en="Vision">비전</a></li>
+                    <li class="nav__item"><a href="technology.html" class="nav__link" data-kr="SSIRN 기술" data-en="SSIRN Tech">SSIRN 기술</a></li>
+                    <li class="nav__item"><a href="products.html" class="nav__link nav__link--active" data-kr="제품" data-en="Products">제품</a></li>
+                    <li class="nav__item"><a href="contact.html" class="nav__link" data-kr="문의" data-en="Contact">문의</a></li>
+                </ul>
+                <button class="nav__lang-toggle" id="lang-toggle"><span class="nav__lang-text">EN</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero hero--small">
+        <div class="hero__overlay"></div>
+        <div class="container hero__container">
+            <h1 class="hero__title" data-kr="제품 & 서비스" data-en="Products & Services">제품 & 서비스</h1>
+            <p class="hero__subtitle" data-kr="2020-2029 로드맵" data-en="2020-2029 Roadmap">2020-2029 로드맵</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="grid grid--3">
+                <div class="card">
+                    <img src="images/robot-red-ball.jpg" alt="상호작용 로봇" style="border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 class="card__title" data-kr="상호작용 로봇" data-en="Interactive Robot">상호작용 로봇</h3>
+                    <p class="card__text" data-kr="인간과 자연스럽게 상호작용하는 차세대 로봇" data-en="Next-gen interactive robot">인간과 자연스럽게 상호작용하는 차세대 로봇</p>
+                </div>
+                <div class="card">
+                    <img src="images/robot-dual-soccer.jpg" alt="다중 로봇 협업" style="border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 class="card__title" data-kr="다중 로봇 협업" data-en="Multi-Robot">다중 로봇 협업</h3>
+                    <p class="card__text" data-kr="SSIRN 기반 로봇 간 협업 시스템" data-en="SSIRN-based collaboration">SSIRN 기반 로봇 간 협업 시스템</p>
+                </div>
+                <div class="card">
+                    <img src="images/humanoid-lab.jpg" alt="휴머노이드 연구" style="border-radius: 8px; margin-bottom: 1rem;">
+                    <h3 class="card__title" data-kr="휴머노이드 연구" data-en="Humanoid Research">휴머노이드 연구</h3>
+                    <p class="card__text" data-kr="TiNA 프로토타입 개발 및 연구" data-en="TiNA prototype development">TiNA 프로토타입 개발 및 연구</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section section--roadmap">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title" data-kr="제품 로드맵" data-en="Product Roadmap">제품 로드맵</h2>
+            </div>
+            <div class="timeline">
+                <div class="timeline__item">
+                    <div class="timeline__marker"></div>
+                    <div class="timeline__content">
+                        <h4 class="timeline__year">~2020</h4>
+                        <h3 class="timeline__title" data-kr="교육용 로봇" data-en="Educational Robot">교육용 로봇</h3>
+                        <p class="timeline__text" data-kr="인공지능 교육용 로봇, 영어 토론 챗봇" data-en="AI educational robot">인공지능 교육용 로봇, 영어 토론 챗봇</p>
+                    </div>
+                </div>
+                <div class="timeline__item">
+                    <div class="timeline__marker"></div>
+                    <div class="timeline__content">
+                        <h4 class="timeline__year">~2022</h4>
+                        <h3 class="timeline__title">TiNA V1</h3>
+                        <p class="timeline__text" data-kr="로봇 근로자 파견, 무형식주 서비스" data-en="Robot worker dispatch">로봇 근로자 파견, 무형식주 서비스</p>
+                    </div>
+                </div>
+                <div class="timeline__item timeline__item--active">
+                    <div class="timeline__marker"></div>
+                    <div class="timeline__content">
+                        <h4 class="timeline__year">~2025</h4>
+                        <h3 class="timeline__title">Digital Twin</h3>
+                        <p class="timeline__text" data-kr="AGI 감성 인공지능, SSIRN 네트워크" data-en="AGI emotional AI">AGI 감성 인공지능, SSIRN 네트워크</p>
+                        <span class="timeline__badge" data-kr="진행 중" data-en="In Progress">진행 중</span>
+                    </div>
+                </div>
+                <div class="timeline__item">
+                    <div class="timeline__marker"></div>
+                    <div class="timeline__content">
+                        <h4 class="timeline__year">~2027</h4>
+                        <h3 class="timeline__title" data-kr="돌봄 로봇" data-en="Care Robot">돌봄 로봇</h3>
+                        <p class="timeline__text" data-kr="AAL 기반 사회적 기여 로봇" data-en="AAL-based robot">AAL 기반 사회적 기여 로봇</p>
+                    </div>
+                </div>
+                <div class="timeline__item">
+                    <div class="timeline__marker"></div>
+                    <div class="timeline__content">
+                        <h4 class="timeline__year">~2029</h4>
+                        <h3 class="timeline__title">TiNA V2</h3>
+                        <p class="timeline__text" data-kr="Post Humanism, 사후의 인공지능" data-en="Post Humanism">Post Humanism, 사후의 인공지능</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__main">
+                <div class="footer__brand">
+                    <img src="images/logo.png" alt="지기술 로고" class="footer__logo">
+                    <p class="footer__tagline" data-kr="인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업" data-en="Creating AI that serves humanity">인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업</p>
+                </div>
+                <div class="footer__links">
+                    <div class="footer__section">
+                        <h4 class="footer__title" data-kr="연락처" data-en="Contact">연락처</h4>
+                        <ul class="footer__list">
+                            <li><i class="fas fa-envelope"></i><a href="mailto:hdh6401@gmail.com">hdh6401@gmail.com</a></li>
+                            <li><i class="fas fa-phone"></i><a href="tel:010-2512-6818">010-2512-6818</a></li>
+                            <li><i class="fas fa-globe"></i><a href="http://ssirn.co.kr">ssirn.co.kr</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <div class="footer__info">
+                    <p data-kr="주소: 전남 영암군 금동길 33 지기술타운" data-en="Address: 33 Geumdong-gil, Yeongam-gun, Korea">주소: 전남 영암군 금동길 33 지기술타운</p>
+                    <p data-kr="사업자등록번호: 621-78-00335" data-en="Business: 621-78-00335">사업자등록번호: 621-78-00335</p>
+                </div>
+                <p class="footer__copyright">&copy; 2026 <span data-kr="지기술. 모든 권리 보유." data-en="G-TECH. All rights reserved.">지기술. 모든 권리 보유.</span></p>
+            </div>
+        </div>
+    </footer>
+    <button class="back-to-top" id="back-to-top"><i class="fas fa-arrow-up"></i></button>
+    <script src="js/main.js"></script>
+</body>
+</html>
