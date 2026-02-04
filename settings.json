@@ -1,0 +1,44 @@
+{
+  "public_cameras": [
+    "feed",
+    "west",
+    "conner"
+  ],
+  "gallery_items": [
+    {
+      "id": 1770226598345,
+      "url": "https://youtube.com/shorts/gFwMVpXXrA0",
+      "description": "\uc720\ub2c8\ud2b8\ub9ac G1\uacfc 2024\ub144",
+      "type": "video",
+      "createdAt": "2026-02-05T02:36:38.345925"
+    },
+    {
+      "id": 1770226218670,
+      "url": "https://youtube.com/shorts/BCGnukEsrs8",
+      "description": "\ud2f0\ub098 \uc637\uc744 \uc785\uc5c8\ub2e4 2020\ub144",
+      "type": "video",
+      "createdAt": "2026-02-05T02:30:18.670825"
+    },
+    {
+      "id": 1770226170731,
+      "url": "https://youtu.be/szYpqaRUICM",
+      "description": "TiNA(\ub108 \ub85c\ubd07\uc778\uac70 \ud2f0\ub098) \ub300\ud654\ub97c \ud558\ub2e4 2019\ub144",
+      "type": "video",
+      "createdAt": "2026-02-05T02:29:30.731886"
+    },
+    {
+      "id": 1770226071972,
+      "url": "https://youtu.be/Wfs-n4qv6ME",
+      "description": "\uc5d1\uc2a4\uce7c\ub9ac\ubc84\uc640 \uc544\ub4e4? 2015\ub144",
+      "type": "video",
+      "createdAt": "2026-02-05T02:27:51.972520"
+    },
+    {
+      "id": 1770226016621,
+      "url": "https://youtu.be/DN_7Y6_B7fo",
+      "description": "2015\ub144\uc791 \uc20f\ub2e4\ub9ac\uc758 \uc5ed\uc2b5",
+      "type": "video",
+      "createdAt": "2026-02-05T02:26:56.621392"
+    }
+  ]
+}

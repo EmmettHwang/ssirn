@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: calc(100vh - 300px);
+        }
+
+        /* 로그인 폼 */
+        .login-container {
+            max-width: 400px;
+            margin: 4rem auto;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+
+        .login-header h2 {
+            font-size: 1.5rem;
+            color: var(--color-text);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            background: #0052cc;
+        }
+
+        .login-error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* 관리자 대시보드 */
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .admin-header h2 {
+            font-size: 1.5rem;
+            color: var(--color-text);
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid #ff4444;
+            border-radius: 8px;
+            color: #ff6b6b;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 68, 68, 0.1);
+        }
+
+        /* 탭 네비게이션 */
+        .admin-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 1rem;
+        }
+
+        .admin-tab {
+            padding: 12px 24px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .admin-tab:hover {
+            border-color: var(--color-primary);
+        }
+
+        .admin-tab.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 카드 섹션 */
+        .admin-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-card h3 {
+            font-size: 1.1rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .admin-card h3 i {
+            color: var(--color-primary);
+        }
+
+        /* 카메라 선택 */
+        .camera-select-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .camera-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .camera-checkbox:hover {
+            border-color: var(--color-primary);
+        }
+
+        .camera-checkbox.selected {
+            border-color: var(--color-primary);
+            background: rgba(0, 102, 255, 0.1);
+        }
+
+        .camera-checkbox input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .camera-checkbox span {
+            color: var(--color-text);
+            font-weight: 500;
+        }
+
+        .camera-checkbox small {
+            color: var(--color-text-muted);
+            display: block;
+            font-size: 0.75rem;
+        }
+
+        /* 동영상 변환 */
+        .convert-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .convert-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .convert-btn {
+            padding: 12px 24px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .convert-btn:hover {
+            background: #0052cc;
+        }
+
+        .convert-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .convert-btn--danger {
+            background: #dc3545;
+        }
+
+        .convert-btn--danger:hover {
+            background: #c82333;
+        }
+
+        /* 상태 메시지 */
+        .status-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .status-message.success {
+            display: block;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .status-message.error {
+            display: block;
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff6b6b;
+        }
+
+        .status-message.info {
+            display: block;
+            background: rgba(0, 102, 255, 0.1);
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        /* 작업 현황 패널 */
+        .task-panel {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 500px;
+            height: 100vh;
+            background: var(--color-bg-light);
+            border-left: 1px solid var(--color-border);
+            box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .task-panel__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .task-panel__title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .task-panel__title i {
+            color: var(--color-primary);
+        }
+
+        .task-panel__close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0.25rem;
+        }
+
+        .task-panel__body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .task-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .task-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .task-item__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-item__type {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .task-item__status {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .task-item__status.running {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .task-item__status.completed {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .task-item__status.failed {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff6b6b;
+        }
+
+        .task-item__desc {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+        }
+
+        .task-item__progress {
+            height: 6px;
+            background: var(--color-border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-item__progress-bar {
+            height: 100%;
+            background: var(--color-primary);
+            transition: width 0.3s;
+        }
+
+        .task-item__info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        .task-item__logs {
+            margin-top: 0.5rem;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 0.5rem;
+        }
+
+        .task-item__log {
+            color: var(--color-text-muted);
+            margin-bottom: 2px;
+        }
+
+        .task-item__log span {
+            color: var(--color-primary);
+            margin-right: 0.5rem;
+        }
+
+        /* 메인 컨텐츠가 패널과 겹치지 않도록 */
+        body {
+            padding-right: 500px;
+        }
+
+        .task-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-muted);
+        }
+
+        .task-empty i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+            opacity: 0.5;
+        }
+
+        /* 시스템 상태 섹션 */
+        .system-section {
+            border-top: 1px solid var(--color-border);
+            padding: 1rem;
+            background: var(--color-bg);
+        }
+
+        .system-section__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .system-section__title {
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .system-section__title i {
+            color: var(--color-primary);
+        }
+
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .system-stat {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .system-stat__label {
+            font-size: 0.65rem;
+            color: var(--color-text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .system-stat__value {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .system-stat__value.good { color: #00ff88; }
+        .system-stat__value.warning { color: #ffa500; }
+        .system-stat__value.danger { color: #ff6b6b; }
+
+        .system-stat__sub {
+            font-size: 0.6rem;
+            color: var(--color-text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .services-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.35rem 0.5rem;
+            background: var(--color-bg-light);
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            font-size: 0.7rem;
+        }
+
+        .service-item__name {
+            color: var(--color-text);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .service-item__stats {
+            display: flex;
+            gap: 0.5rem;
+            color: var(--color-text-muted);
+        }
+
+        .service-item__stat {
+            min-width: 35px;
+            text-align: right;
+        }
+
+        @media (max-width: 1400px) {
+            .task-panel {
+                width: 400px;
+            }
+            body {
+                padding-right: 400px;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .task-panel {
+                width: 320px;
+            }
+            body {
+                padding-right: 320px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .task-panel {
+                width: 100%;
+                height: auto;
+                max-height: 250px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                border-left: none;
+                border-top: 1px solid var(--color-border);
+            }
+            body {
+                padding-right: 0;
+                padding-bottom: 250px;
+            }
+        }
+
+        /* 날짜 목록 */
+        .date-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .date-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .date-item .badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .date-item .badge.video {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .date-item .badge.images {
+            background: var(--color-primary);
+            color: #fff;
+        }
+
+        .date-item .badge.optimized {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .date-item .badge.large {
+            background: #ff9800;
+            color: #000;
+        }
+
+        .date-item .size-info {
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+        }
+
+        /* 체크박스 컨테이너 */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .checkbox-group label {
+            color: var(--color-text);
+            font-size: 0.9rem;
+        }
+
+        /* 변환 대기/완료 섹션 */
+        .pending-dates, .video-list {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 갤러리 그리드 */
+        .gallery-admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .gallery-admin-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .gallery-admin-item__media {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+        }
+
+        .gallery-admin-item__media img,
+        .gallery-admin-item__media iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-admin-item__content {
+            padding: 1rem;
+        }
+
+        .gallery-admin-item__actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .item-btn {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            background: var(--color-bg-light);
+            color: var(--color-text-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .item-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .item-btn--delete:hover {
+            border-color: #ff4444;
+            color: #ff6b6b;
+        }
+
+        .add-item-btn {
+            padding: 1rem;
+            background: var(--color-bg);
+            border: 2px dashed var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .add-item-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .add-item-btn i {
+            font-size: 2rem;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal__content {
+            background: var(--color-bg-light);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal__title {
+            font-size: 1.25rem;
+            color: var(--color-text);
+        }
+
+        .modal__close {
+            background: none;
+            border: none;
+            color: var(--color-text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .form-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-submit {
+            background: var(--color-primary);
+            border: none;
+            color: white;
+        }
+
+        /* 대시보드 스타일 */
+        .dashboard-section {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-header h4 {
+            font-size: 1rem;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dashboard-header h4 i {
+            color: var(--color-primary);
+        }
+
+        .dashboard-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dashboard-controls input {
+            padding: 6px 10px;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text);
+            font-size: 0.85rem;
+        }
+
+        .dash-btn {
+            padding: 6px 12px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .stat-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+            color: var(--color-primary);
+        }
+
+        .stat-icon.cat { color: #ffa500; }
+        .stat-icon.dog { color: #8b4513; }
+        .stat-icon.person { color: #00bcd4; }
+        .stat-icon.car { color: #e91e63; }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+        }
+
+        .chart-section {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chart-section h5 {
+            font-size: 0.85rem;
+            color: var(--color-text);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-section h5 i {
+            color: var(--color-primary);
+        }
+
+        .chart-container {
+            height: 180px;
+        }
+
+        .detections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .detection-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .detection-card img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+        }
+
+        .detection-card__info {
+            padding: 0.5rem;
+            font-size: 0.7rem;
+        }
+
+        .detection-card__class {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .detection-card__time {
+            color: var(--color-text-muted);
+            margin-top: 0.15rem;
+        }
+
+        .detection-badge {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            margin-left: 0.25rem;
+        }
+
+        .detection-badge.cat { background: #ffa500; color: #000; }
+        .detection-badge.dog { background: #8b4513; color: #fff; }
+        .detection-badge.person { background: #00bcd4; color: #fff; }
+        .detection-badge.car { background: #e91e63; color: #fff; }
+
+        .detection-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--color-text-muted);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">
+                <img src="images/logo.png" alt="지기술(G-TECH)" class="nav__logo-img">
+            </a>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html" class="nav__link">홈</a></li>
+                    <li class="nav__item"><a href="gallery.html" class="nav__link">연구 갤러리</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero hero--small">
+        <div class="hero__overlay"></div>
+        <div class="container hero__container">
+            <h1 class="hero__title">관리자</h1>
+            <p class="hero__subtitle">시스템 설정 및 관리</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="admin-container">
+            <!-- 로그인 폼 -->
+            <div class="login-container" id="login-form">
+                <div class="login-header">
+                    <i class="fas fa-lock"></i>
+                    <h2>관리자 로그인</h2>
+                </div>
+                <div class="login-error" id="login-error">
+                    아이디 또는 비밀번호가 올바르지 않습니다.
+                </div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>아이디</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>비밀번호</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit" class="login-btn">로그인</button>
+                </form>
+            </div>
+
+            <!-- 관리자 패널 -->
+            <div class="admin-panel" id="admin-panel">
+                <div class="admin-header">
+                    <h2><i class="fas fa-cog"></i> 관리자 패널</h2>
+                    <button class="logout-btn" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> 로그아웃
+                    </button>
+                </div>
+
+                <!-- 탭 -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="timelapse">
+                        <i class="fas fa-video"></i> 타임랩스
+                    </button>
+                    <button class="admin-tab" data-tab="analyze">
+                        <i class="fas fa-brain"></i> 객체 분석
+                    </button>
+                    <button class="admin-tab" data-tab="gallery">
+                        <i class="fas fa-images"></i> 갤러리
+                    </button>
+                </div>
+
+                <!-- 타임랩스 탭 -->
+                <div class="tab-content active" id="tab-timelapse">
+                    <!-- 공개 카메라 선택 -->
+                    <div class="admin-card">
+                        <h3><i class="fas fa-eye"></i> 공개 카메라 선택 (최대 3개)</h3>
+                        <div class="camera-select-grid" id="camera-select">
+                            <!-- 동적 생성 -->
+                        </div>
+                        <button class="convert-btn" style="margin-top: 1rem;" onclick="savePublicCameras()">
+                            <i class="fas fa-save"></i> 설정 저장
+                        </button>
+                        <div class="status-message" id="camera-status"></div>
+                    </div>
+
+                    <!-- 동영상 변환 -->
+                    <div class="admin-card">
+                        <h3><i class="fas fa-film"></i> 동영상 변환</h3>
+                        <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
+                            이미지만 있고 동영상이 없는 날짜를 자동으로 찾아서 변환합니다.
+                        </p>
+                        <div class="convert-simple">
+                            <div class="form-group" style="margin-bottom:1rem">
+                                <label>카메라 선택</label>
+                                <select id="convert-camera" onchange="loadPendingDates()">
+                                    <option value="feed">메인 카메라</option>
+                                    <option value="west">서쪽 카메라</option>
+                                    <option value="roof">지붕 카메라</option>
+                                    <option value="conner">코너 카메라</option>
+                                </select>
+                            </div>
+                            <div class="pending-dates" id="pending-dates">
+                                <div style="padding:1rem;color:var(--color-text-muted);">로딩 중...</div>
+                            </div>
+                            <div class="checkbox-group" style="margin:1rem 0;">
+                                <input type="checkbox" id="delete-after-convert" checked>
+                                <label for="delete-after-convert">변환 후 원본 이미지 삭제 (저장소 절약)</label>
+                            </div>
+                            <button class="convert-btn" id="convert-all-btn" onclick="convertPendingDates()" style="width:100%;">
+                                <i class="fas fa-magic"></i> 대기 중인 날짜 모두 변환
+                            </button>
+                        </div>
+                        <div class="status-message" id="convert-status"></div>
+                    </div>
+
+                    <!-- 변환 완료된 동영상 -->
+                    <div class="admin-card">
+                        <h3><i class="fas fa-video"></i> 변환 완료된 동영상</h3>
+                        <div class="form-group">
+                            <select id="video-camera" onchange="loadCompletedVideos()">
+                                <option value="feed">메인 카메라</option>
+                                <option value="west">서쪽 카메라</option>
+                                <option value="roof">지붕 카메라</option>
+                                <option value="conner">코너 카메라</option>
+                            </select>
+                        </div>
+                        <div class="video-list" id="video-list">
+                            로딩 중...
+                        </div>
+                        <div id="resize-section" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border);">
+                            <p style="color:var(--color-text-muted);font-size:0.85rem;margin-bottom:0.75rem;">
+                                <i class="fas fa-compress"></i> 기존 동영상을 720p로 리사이즈하여 저장 공간을 절약합니다.
+                            </p>
+                            <button class="convert-btn" id="resize-all-btn" onclick="resizeAllVideos()" style="width:100%;background:#ff9800;">
+                                <i class="fas fa-compress-arrows-alt"></i> 기존 동영상 일괄 720p 리사이즈
+                            </button>
+                        </div>
+                        <div class="status-message" id="resize-status"></div>
+                    </div>
+                </div>
+
+                <!-- 객체 분석 탭 -->
+                <div class="tab-content" id="tab-analyze">
+                    <div class="admin-card">
+                        <h3><i class="fas fa-brain"></i> YOLOv8 객체 분석</h3>
+                        <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
+                            FTP 서버의 이미지를 분석하여 고양이, 개, 사람, 자동차 등을 탐지하고 결과를 대시보드에 저장합니다.
+                        </p>
+                        <div class="form-group">
+                            <label>분석 카메라</label>
+                            <select id="analyze-camera">
+                                <option value="feed">메인 카메라</option>
+                                <option value="west">서쪽 카메라</option>
+                                <option value="roof">지붕 카메라</option>
+                                <option value="conner">코너 카메라</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>분석할 날짜</label>
+                            <select id="analyze-date">
+                                <option value="">날짜 로딩 중...</option>
+                            </select>
+                        </div>
+                        <button class="convert-btn" id="analyze-btn" onclick="runAnalysis()" style="width:100%;">
+                            <i class="fas fa-play"></i> 분석 실행
+                        </button>
+                        <div class="status-message" id="analyze-status"></div>
+                    </div>
+
+                    <!-- 대시보드 섹션 -->
+                    <div class="dashboard-section">
+                        <div class="dashboard-header">
+                            <h4><i class="fas fa-chart-line"></i> 객체 탐지 현황</h4>
+                            <div class="dashboard-controls">
+                                <input type="date" id="dash-date-from">
+                                <span style="color:var(--color-text-muted);">~</span>
+                                <input type="date" id="dash-date-to">
+                                <button class="dash-btn" onclick="loadDashboard()"><i class="fas fa-sync"></i></button>
+                            </div>
+                        </div>
+                        <!-- 통계 카드 -->
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                                <div class="stat-value" id="stat-total">-</div>
+                                <div class="stat-label">총 탐지</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon cat"><i class="fas fa-cat"></i></div>
+                                <div class="stat-value" id="stat-cats">-</div>
+                                <div class="stat-label">고양이</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon dog"><i class="fas fa-dog"></i></div>
+                                <div class="stat-value" id="stat-dogs">-</div>
+                                <div class="stat-label">개</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon person"><i class="fas fa-user"></i></div>
+                                <div class="stat-value" id="stat-persons">-</div>
+                                <div class="stat-label">사람</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon car"><i class="fas fa-car"></i></div>
+                                <div class="stat-value" id="stat-cars">-</div>
+                                <div class="stat-label">자동차</div>
+                            </div>
+                        </div>
+                        <!-- 시간대별 차트 -->
+                        <div class="chart-section">
+                            <h5><i class="fas fa-clock"></i> 시간대별 출몰</h5>
+                            <div class="chart-container">
+                                <canvas id="hourlyChart"></canvas>
+                            </div>
+                        </div>
+                        <!-- 최근 탐지 -->
+                        <div class="detections-section">
+                            <h5 style="font-size:0.85rem;color:var(--color-text);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem;">
+                                <i class="fas fa-images" style="color:var(--color-primary);"></i> 최근 탐지
+                            </h5>
+                            <div class="detections-grid" id="detections-grid">
+                                <div class="detection-empty">데이터 로딩 중...</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:1rem;text-align:right;">
+                            <a href="/dashboard" style="color:var(--color-primary);font-size:0.85rem;">
+                                <i class="fas fa-external-link-alt"></i> 전체 대시보드 보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 갤러리 탭 -->
+                <div class="tab-content" id="tab-gallery">
+                    <div class="gallery-admin-grid" id="gallery-grid">
+                        <div class="add-item-btn" onclick="openGalleryModal()">
+                            <i class="fas fa-plus"></i>
+                            <span>항목 추가</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 갤러리 모달 -->
+    <div class="modal" id="gallery-modal">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h3 class="modal__title">항목 추가</h3>
+                <button class="modal__close" onclick="closeGalleryModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="gallery-form" onsubmit="saveGalleryItem(event)">
+                <input type="hidden" id="gallery-item-id">
+                <div class="form-group">
+                    <label>URL (YouTube 또는 이미지)</label>
+                    <input type="url" id="gallery-url" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label>설명 (선택)</label>
+                    <textarea id="gallery-description" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeGalleryModal()">취소</button>
+                    <button type="submit" class="btn-submit">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__bottom">
+                <p>&copy; 2026 지기술(G-TECH). All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // 전역 변수
+        const ALL_CAMERAS = [
+            { id: 'feed', name: '메인 카메라' },
+            { id: 'west', name: '서쪽 카메라' },
+            { id: 'roof', name: '지붕 카메라' },
+            { id: 'conner', name: '코너 카메라' }
+        ];
+        let publicCameras = ['feed', 'west', 'roof'];
+        let galleryItems = [];
+        let hourlyChart = null;
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            setupTabs();
+            setupLogin();
+        });
+
+        // 인증 체크
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/check');
+                const data = await res.json();
+                if (data.authenticated) {
+                    showAdminPanel();
+                }
+            } catch (e) {}
+        }
+
+        // 로그인 설정
+        function setupLogin() {
+            document.getElementById('loginForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    const res = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    if (res.ok) {
+                        document.getElementById('login-error').style.display = 'none';
+                        showAdminPanel();
+                    } else {
+                        document.getElementById('login-error').style.display = 'block';
+                    }
+                } catch (e) {
+                    document.getElementById('login-error').style.display = 'block';
+                }
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await fetch('/api/logout', { method: 'POST' });
+                location.reload();
+            });
+        }
+
+        // 관리자 패널 표시
+        async function showAdminPanel() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+
+            await loadSettings();
+            renderCameraSelect();
+            loadPendingDates();
+            loadCompletedVideos();
+            loadAnalyzeDates();
+            initDashboard();
+            loadGalleryItems();
+        }
+
+        // 탭 설정
+        function setupTabs() {
+            document.querySelectorAll('.admin-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+                });
+            });
+        }
+
+        // 설정 로드
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                if (data.success && data.settings) {
+                    publicCameras = data.settings.public_cameras || ['feed', 'west', 'roof'];
+                }
+            } catch (e) {}
+        }
+
+        // 카메라 선택 렌더링
+        function renderCameraSelect() {
+            const container = document.getElementById('camera-select');
+            container.innerHTML = ALL_CAMERAS.map(cam => {
+                const isSelected = publicCameras.includes(cam.id);
+                return `
+                    <label class="camera-checkbox ${isSelected ? 'selected' : ''}" data-id="${cam.id}">
+                        <input type="checkbox" ${isSelected ? 'checked' : ''} onchange="toggleCamera('${cam.id}', this)">
+                        <div>
+                            <span>${cam.name}</span>
+                            <small>${cam.id}</small>
+                        </div>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        // 카메라 토글
+        function toggleCamera(id, checkbox) {
+            const container = checkbox.closest('.camera-checkbox');
+
+            if (checkbox.checked) {
+                if (publicCameras.length >= 3) {
+                    checkbox.checked = false;
+                    showStatus('camera-status', '최대 3개까지만 선택 가능합니다.', 'error');
+                    return;
+                }
+                publicCameras.push(id);
+                container.classList.add('selected');
+            } else {
+                publicCameras = publicCameras.filter(c => c !== id);
+                container.classList.remove('selected');
+            }
+        }
+
+        // 공개 카메라 저장
+        async function savePublicCameras() {
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_cameras: publicCameras })
+                });
+
+                if (res.ok) {
+                    showStatus('camera-status', '설정이 저장되었습니다.', 'success');
+                } else {
+                    showStatus('camera-status', '저장 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('camera-status', '저장 실패: ' + e.message, 'error');
+            }
+        }
+
+        // 동영상 변환
+        async function convertToVideo() {
+            const camera = document.getElementById('convert-camera').value;
+            const fromDate = document.getElementById('convert-from').value.replace(/-/g, '');
+            const toDate = document.getElementById('convert-to').value.replace(/-/g, '');
+            const deleteImages = document.getElementById('delete-after-convert').checked;
+
+            if (!fromDate || !toDate) {
+                showStatus('convert-status', '날짜를 선택하세요.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('convert-status', '변환 작업을 시작합니다...', 'info');
+
+                const res = await fetch(`/api/feed/convert-range/${camera}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from_date: fromDate,
+                        to_date: toDate,
+                        delete_images: deleteImages
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('convert-status', '변환 작업이 백그라운드에서 진행됩니다.', 'success');
+                } else {
+                    showStatus('convert-status', data.detail || '변환 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('convert-status', '오류: ' + e.message, 'error');
+            }
+        }
+
+        // 변환 대기 날짜 로드
+        async function loadPendingDates() {
+            const camera = document.getElementById('convert-camera').value;
+            const container = document.getElementById('pending-dates');
+            const btn = document.getElementById('convert-all-btn');
+
+            container.innerHTML = '<div style="padding:1rem;color:var(--color-text-muted);">로딩 중...</div>';
+
+            try {
+                const res = await fetch(`/api/feed/pending-dates/${camera}`);
+                const data = await res.json();
+
+                if (!data.success) {
+                    container.innerHTML = '<div style="padding:1rem;color:#ff6b6b;">로드 실패</div>';
+                    btn.disabled = true;
+                    return;
+                }
+
+                const pending = data.pending || [];
+                const completed = data.completed || [];
+
+                if (pending.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding:1.5rem;text-align:center;color:var(--color-text-muted);">
+                            <i class="fas fa-check-circle" style="font-size:2rem;color:#00ff88;margin-bottom:0.5rem;display:block;"></i>
+                            모든 날짜가 변환 완료되었습니다!<br>
+                            <small>완료: ${completed.length}개</small>
+                        </div>
+                    `;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-check"></i> 변환 완료';
+                    return;
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fas fa-magic"></i> ${pending.length}개 날짜 모두 변환`;
+
+                container.innerHTML = `
+                    <div style="margin-bottom:0.75rem;color:var(--color-text-muted);font-size:0.85rem;">
+                        대기: <strong style="color:var(--color-primary)">${pending.length}개</strong> / 완료: ${completed.length}개
+                    </div>
+                    <div class="date-list">
+                        ${pending.slice(0, 20).map(date => {
+                            const formatted = `${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`;
+                            return `<div class="date-item"><span>${formatted}</span><span class="badge images">대기</span></div>`;
+                        }).join('')}
+                        ${pending.length > 20 ? `<div class="date-item"><span>...</span><small>외 ${pending.length - 20}개</small></div>` : ''}
+                    </div>
+                `;
+            } catch (e) {
+                container.innerHTML = '<div style="padding:1rem;color:#ff6b6b;">로드 실패: ' + e.message + '</div>';
+                btn.disabled = true;
+            }
+        }
+
+        // 대기 중인 날짜 모두 변환
+        async function convertPendingDates() {
+            const camera = document.getElementById('convert-camera').value;
+            const deleteImages = document.getElementById('delete-after-convert').checked;
+            const btn = document.getElementById('convert-all-btn');
+
+            // 대기 날짜 가져오기
+            const res = await fetch(`/api/feed/pending-dates/${camera}`);
+            const data = await res.json();
+
+            if (!data.success || !data.pending.length) {
+                showStatus('convert-status', '변환할 날짜가 없습니다.', 'info');
+                return;
+            }
+
+            const pending = data.pending;
+            const fromDate = pending[pending.length - 1]; // 가장 오래된
+            const toDate = pending[0]; // 가장 최근
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 변환 중...';
+            showStatus('convert-status', `${pending.length}개 날짜 변환을 시작합니다...`, 'info');
+
+            try {
+                const convertRes = await fetch(`/api/feed/convert-range/${camera}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from_date: fromDate,
+                        to_date: toDate,
+                        delete_images: deleteImages
+                    })
+                });
+
+                const convertData = await convertRes.json();
+                if (convertData.success) {
+                    showStatus('convert-status', `${pending.length}개 날짜 변환이 백그라운드에서 진행됩니다. 완료까지 시간이 걸릴 수 있습니다.`, 'success');
+                } else {
+                    showStatus('convert-status', convertData.detail || '변환 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('convert-status', '오류: ' + e.message, 'error');
+            }
+
+            // 잠시 후 새로고침
+            setTimeout(() => {
+                loadPendingDates();
+            }, 3000);
+        }
+
+        // 완료된 동영상 로드
+        async function loadCompletedVideos() {
+            const camera = document.getElementById('video-camera').value;
+            const container = document.getElementById('video-list');
+            const resizeSection = document.getElementById('resize-section');
+
+            container.innerHTML = '로딩 중...';
+
+            try {
+                const res = await fetch(`/api/feed/videos?camera=${camera}`);
+                const data = await res.json();
+
+                if (!data.success || !data.video_info || !data.video_info.length) {
+                    container.innerHTML = '<div style="padding:1rem;color:var(--color-text-muted);">변환된 동영상이 없습니다.</div>';
+                    resizeSection.style.display = 'none';
+                    return;
+                }
+
+                const videos = data.video_info;
+                const optimizedCount = videos.filter(v => v.is_720p).length;
+                const needsResizeCount = videos.length - optimizedCount;
+
+                // 모든 동영상이 720p면 리사이즈 버튼 숨김
+                if (data.all_720p) {
+                    resizeSection.style.display = 'none';
+                } else {
+                    resizeSection.style.display = 'block';
+                    document.getElementById('resize-all-btn').innerHTML =
+                        `<i class="fas fa-compress-arrows-alt"></i> ${needsResizeCount}개 동영상 720p 리사이즈`;
+                }
+
+                container.innerHTML = `
+                    <div style="margin-bottom:0.75rem;color:var(--color-text-muted);font-size:0.85rem;">
+                        총 <strong style="color:#00ff88">${videos.length}개</strong> 동영상
+                        ${needsResizeCount > 0 ?
+                            ` (720p: <span style="color:#00ff88">${optimizedCount}</span>, 리사이즈 필요: <span style="color:#ff9800">${needsResizeCount}</span>)` :
+                            ' <span style="color:#00ff88">✓ 모두 720p</span>'}
+                    </div>
+                    <div class="date-list">
+                        ${videos.map(v => {
+                            const formatted = `${v.date.slice(0,4)}-${v.date.slice(4,6)}-${v.date.slice(6,8)}`;
+                            const badge = v.is_720p ?
+                                '<span class="badge optimized">720p</span>' :
+                                '<span class="badge large">리사이즈 필요</span>';
+                            return `
+                                <div class="date-item">
+                                    <div>
+                                        <span>${formatted}</span>
+                                        <span class="size-info">(${v.size_mb}MB)</span>
+                                    </div>
+                                    ${badge}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            } catch (e) {
+                container.innerHTML = '<div style="padding:1rem;color:#ff6b6b;">로드 실패</div>';
+                resizeSection.style.display = 'block';
+            }
+        }
+
+        // 기존 동영상 일괄 리사이즈
+        async function resizeAllVideos() {
+            const camera = document.getElementById('video-camera').value;
+
+            if (!confirm(`${camera} 카메라의 모든 동영상을 720p로 리사이즈합니다.\n이 작업은 시간이 걸릴 수 있습니다. 계속하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                showStatus('resize-status', '리사이즈 작업을 시작합니다...', 'info');
+
+                const res = await fetch(`/api/feed/resize-all/${camera}`, {
+                    method: 'POST'
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('resize-status', '리사이즈 작업이 백그라운드에서 진행됩니다. 서버 로그를 확인하세요.', 'success');
+                } else {
+                    showStatus('resize-status', data.detail || '리사이즈 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('resize-status', '오류: ' + e.message, 'error');
+            }
+        }
+
+        // 상태 메시지 표시
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = 'status-message ' + type;
+        }
+
+        // ==================== 대시보드 ====================
+        function initDashboard() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dash-date-from').value = today;
+            document.getElementById('dash-date-to').value = today;
+            loadDashboard();
+        }
+
+        async function loadDashboard() {
+            const fromDate = document.getElementById('dash-date-from').value;
+            const toDate = document.getElementById('dash-date-to').value;
+
+            // 통계 로드
+            try {
+                const res = await fetch(`/api/dashboard/stats?from=${fromDate}&to=${toDate}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('stat-total').textContent = data.total || 0;
+                    document.getElementById('stat-cats').textContent = data.cats || 0;
+                    document.getElementById('stat-dogs').textContent = data.dogs || 0;
+                    document.getElementById('stat-persons').textContent = data.persons || 0;
+                    document.getElementById('stat-cars').textContent = data.cars || 0;
+
+                    updateHourlyChart(data.hourly || Array(24).fill(0));
+                }
+            } catch (e) {
+                console.error('Dashboard stats error:', e);
+            }
+
+            // 탐지 기록 로드
+            try {
+                const res = await fetch(`/api/dashboard/detections?from=${fromDate}&to=${toDate}&limit=12`);
+                const data = await res.json();
+
+                const grid = document.getElementById('detections-grid');
+                if (data.success && data.detections && data.detections.length > 0) {
+                    grid.innerHTML = data.detections.map(d => {
+                        let badge = '';
+                        const cls = d.object_class || d.class;
+                        if (cls === 'cat' || d.is_cat) badge = '<span class="detection-badge cat">고양이</span>';
+                        else if (cls === 'dog') badge = '<span class="detection-badge dog">개</span>';
+                        else if (cls === 'person') badge = '<span class="detection-badge person">사람</span>';
+                        else if (cls === 'car') badge = '<span class="detection-badge car">자동차</span>';
+
+                        return `
+                            <div class="detection-card">
+                                <img src="/api/feed/image/${d.date || d.image_date}/${d.image || d.image_name}" alt="${cls}" loading="lazy">
+                                <div class="detection-card__info">
+                                    <div class="detection-card__class">${cls}${badge}</div>
+                                    <div class="detection-card__time">${d.time || d.image_time}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    grid.innerHTML = '<div class="detection-empty"><i class="fas fa-inbox"></i><br>탐지 데이터가 없습니다<br><small>위에서 분석을 실행해주세요</small></div>';
+                }
+            } catch (e) {
+                document.getElementById('detections-grid').innerHTML = '<div class="detection-empty">데이터 로드 실패</div>';
+            }
+        }
+
+        function updateHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+            if (hourlyChart) hourlyChart.destroy();
+
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
+                    datasets: [{
+                        label: '탐지 횟수',
+                        data: data,
+                        backgroundColor: 'rgba(0, 102, 255, 0.6)',
+                        borderColor: 'rgba(0, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#a0aec0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#a0aec0', maxRotation: 0 }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // ==================== 갤러리 관리 (서버 API) ====================
+        async function loadGalleryItems() {
+            try {
+                const res = await fetch('/api/gallery');
+                const data = await res.json();
+                galleryItems = data.success ? (data.items || []) : [];
+                renderGalleryItems();
+            } catch (e) {
+                galleryItems = [];
+                renderGalleryItems();
+            }
+        }
+
+        function renderGalleryItems() {
+            const grid = document.getElementById('gallery-grid');
+
+            let html = `
+                <div class="add-item-btn" onclick="openGalleryModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>항목 추가</span>
+                </div>
+            `;
+
+            html += galleryItems.map(item => {
+                let mediaHtml;
+                if (item.type === 'video') {
+                    const embedUrl = getYouTubeEmbed(item.url);
+                    mediaHtml = `<iframe src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`;
+                } else {
+                    mediaHtml = `<img src="${item.url}" alt="">`;
+                }
+
+                return `
+                    <div class="gallery-admin-item">
+                        <div class="gallery-admin-item__media">${mediaHtml}</div>
+                        <div class="gallery-admin-item__content">
+                            <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:0.5rem;">
+                                ${item.description || '설명 없음'}
+                            </p>
+                            <div class="gallery-admin-item__actions">
+                                <button class="item-btn" onclick="editGalleryItem(${item.id})">
+                                    <i class="fas fa-edit"></i> 수정
+                                </button>
+                                <button class="item-btn item-btn--delete" onclick="deleteGalleryItem(${item.id})">
+                                    <i class="fas fa-trash"></i> 삭제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            grid.innerHTML = html;
+        }
+
+        function getYouTubeEmbed(url) {
+            const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([^&\n?#]+)/);
+            return match ? `https://www.youtube.com/embed/${match[1]}?mute=1` : url;
+        }
+
+        function openGalleryModal(item = null) {
+            document.getElementById('gallery-modal').classList.add('active');
+            document.getElementById('gallery-item-id').value = item ? item.id : '';
+            document.getElementById('gallery-url').value = item ? item.url : '';
+            document.getElementById('gallery-description').value = item ? (item.description || '') : '';
+        }
+
+        function closeGalleryModal() {
+            document.getElementById('gallery-modal').classList.remove('active');
+            document.getElementById('gallery-form').reset();
+        }
+
+        async function saveGalleryItem(e) {
+            e.preventDefault();
+            const id = document.getElementById('gallery-item-id').value;
+            const url = document.getElementById('gallery-url').value.trim();
+            const description = document.getElementById('gallery-description').value.trim();
+
+            if (!url) return;
+
+            try {
+                if (id) {
+                    // 수정
+                    await fetch(`/api/gallery/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, description })
+                    });
+                } else {
+                    // 추가
+                    await fetch('/api/gallery', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, description })
+                    });
+                }
+
+                await loadGalleryItems();
+                closeGalleryModal();
+            } catch (e) {
+                alert('저장 실패: ' + e.message);
+            }
+        }
+
+        function editGalleryItem(id) {
+            const item = galleryItems.find(i => i.id === id);
+            if (item) openGalleryModal(item);
+        }
+
+        async function deleteGalleryItem(id) {
+            if (confirm('정말 삭제하시겠습니까?')) {
+                try {
+                    await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
+                    await loadGalleryItems();
+                } catch (e) {
+                    alert('삭제 실패: ' + e.message);
+                }
+            }
+        }
+
+        // ==================== 객체 분석 ====================
+        async function loadAnalyzeDates() {
+            const camera = document.getElementById('analyze-camera').value;
+            const select = document.getElementById('analyze-date');
+
+            try {
+                const res = await fetch(`/api/feed/dates?camera=${camera}`);
+                const data = await res.json();
+
+                if (data.success && data.dates.length > 0) {
+                    select.innerHTML = data.dates.map(d => {
+                        const formatted = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
+                        return `<option value="${d}">${formatted}</option>`;
+                    }).join('');
+                } else {
+                    select.innerHTML = '<option value="">날짜 없음</option>';
+                }
+            } catch (e) {
+                select.innerHTML = '<option value="">로드 실패</option>';
+            }
+        }
+
+        // 카메라 변경 시 날짜 목록 갱신
+        document.getElementById('analyze-camera')?.addEventListener('change', loadAnalyzeDates);
+
+        async function runAnalysis() {
+            const date = document.getElementById('analyze-date').value;
+            const btn = document.getElementById('analyze-btn');
+
+            if (!date) {
+                showStatus('analyze-status', '날짜를 선택하세요.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 중...';
+            showStatus('analyze-status', '분석을 시작합니다. 이미지 수에 따라 시간이 걸릴 수 있습니다...', 'info');
+
+            try {
+                const res = await fetch(`/api/analyze/${date}`, {
+                    method: 'POST'
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('analyze-status', '분석 작업이 백그라운드에서 진행됩니다. 완료 후 대시보드에서 확인하세요.', 'success');
+                } else {
+                    showStatus('analyze-status', data.detail || '분석 실패', 'error');
+                }
+            } catch (e) {
+                showStatus('analyze-status', '오류: ' + e.message, 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play"></i> 분석 실행';
+        }
+
+        // ==================== 작업 현황 ====================
+        let taskRefreshInterval = null;
+        let systemRefreshInterval = null;
+        let lastTasksHtml = '';  // 깜빡임 방지용
+
+        // 패널이 항상 보이므로 자동 시작
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+            loadSystemStatus();
+            taskRefreshInterval = setInterval(loadTasks, 2000);
+            systemRefreshInterval = setInterval(loadSystemStatus, 5000);
+        });
+
+        async function loadTasks() {
+            try {
+                const res = await fetch('/api/tasks');
+                const data = await res.json();
+
+                if (!data.success) return;
+
+                const running = data.running || [];
+                const recent = data.recent || [];
+
+                // 실행 중인 작업 수 표시
+                const countEl = document.getElementById('task-running-count');
+                if (running.length > 0) {
+                    countEl.innerHTML = `<span style="color:#ffa500;"><i class="fas fa-spinner fa-spin"></i> 실행 중: ${running.length}개</span>`;
+                } else {
+                    countEl.textContent = '대기 중';
+                }
+
+                // HTML 생성
+                let newHtml;
+                if (recent.length === 0) {
+                    newHtml = `
+                        <div class="task-empty">
+                            <i class="fas fa-tasks"></i>
+                            <p>실행된 작업이 없습니다</p>
+                        </div>
+                    `;
+                } else {
+                    newHtml = recent.map(task => {
+                        const progress = task.total > 0 ? Math.round((task.progress / task.total) * 100) : 0;
+                        const logs = (task.logs || []).slice(-5).reverse();
+
+                        return `
+                            <div class="task-item" data-task-id="${task.id}">
+                                <div class="task-item__header">
+                                    <span class="task-item__type">${task.type}</span>
+                                    <span class="task-item__status ${task.status}">${getStatusText(task.status)}</span>
+                                </div>
+                                <div class="task-item__desc">${task.description}</div>
+                                ${task.status === 'running' ? `
+                                    <div class="task-item__progress">
+                                        <div class="task-item__progress-bar" style="width: ${progress}%"></div>
+                                    </div>
+                                ` : ''}
+                                <div class="task-item__info">
+                                    <span>${task.current_item || ''}</span>
+                                    <span>${task.progress}/${task.total} (${progress}%)</span>
+                                </div>
+                                ${logs.length > 0 ? `
+                                    <div class="task-item__logs">
+                                        ${logs.map(log => `
+                                            <div class="task-item__log"><span>${log.time}</span>${log.message}</div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 내용이 변경된 경우에만 업데이트 (깜빡임 방지)
+                if (newHtml !== lastTasksHtml) {
+                    document.getElementById('task-panel-body').innerHTML = newHtml;
+                    lastTasksHtml = newHtml;
+                }
+
+            } catch (e) {
+                console.error('Task load error:', e);
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'running': return '실행 중';
+                case 'completed': return '완료';
+                case 'failed': return '실패';
+                default: return status;
+            }
+        }
+
+        // ==================== 시스템 상태 ====================
+        async function loadSystemStatus() {
+            try {
+                const res = await fetch('/api/system/status');
+                const data = await res.json();
+
+                if (!data.success) return;
+
+                // CPU
+                const cpuEl = document.getElementById('sys-cpu');
+                const cpuVal = data.cpu.usage;
+                cpuEl.textContent = cpuVal + '%';
+                cpuEl.className = 'system-stat__value ' + getUsageClass(cpuVal);
+
+                // 메모리
+                const memEl = document.getElementById('sys-mem');
+                const memVal = data.memory.percent;
+                memEl.textContent = memVal + '%';
+                memEl.className = 'system-stat__value ' + getUsageClass(memVal);
+                document.getElementById('sys-mem-detail').textContent =
+                    `${data.memory.used_mb}/${data.memory.total_mb}MB`;
+
+                // 디스크
+                const diskEl = document.getElementById('sys-disk');
+                const diskVal = data.disk.percent;
+                diskEl.textContent = diskVal + '%';
+                diskEl.className = 'system-stat__value ' + getUsageClass(diskVal);
+                document.getElementById('sys-disk-detail').textContent =
+                    `${data.disk.used}/${data.disk.total}`;
+
+                // 서비스 목록
+                const servicesEl = document.getElementById('services-list');
+                if (data.services && data.services.length > 0) {
+                    servicesEl.innerHTML = data.services.map(s => `
+                        <div class="service-item">
+                            <span class="service-item__name" title="${s.cmd}">${s.cmd}</span>
+                            <span class="service-item__stats">
+                                <span class="service-item__stat">${s.cpu}%</span>
+                                <span class="service-item__stat">${s.mem}%</span>
+                            </span>
+                        </div>
+                    `).join('');
+                } else {
+                    servicesEl.innerHTML = '<div style="padding:0.5rem;color:var(--color-text-muted);text-align:center;font-size:0.75rem;">서비스 없음</div>';
+                }
+
+                // 업데이트 시간
+                document.getElementById('system-update-time').textContent =
+                    new Date().toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+
+            } catch (e) {
+                console.error('System status error:', e);
+            }
+        }
+
+        function getUsageClass(val) {
+            if (val < 50) return 'good';
+            if (val < 80) return 'warning';
+            return 'danger';
+        }
+
+    </script>
+
+    <!-- 작업 현황 패널 (항상 표시) -->
+    <div class="task-panel" id="task-panel">
+        <div class="task-panel__header">
+            <div class="task-panel__title">
+                <i class="fas fa-tasks"></i> 작업 현황
+            </div>
+            <div id="task-running-count" style="font-size:0.8rem;color:var(--color-text-muted);"></div>
+        </div>
+        <div class="task-panel__body" id="task-panel-body" style="flex:1;min-height:0;">
+            <div class="task-empty">
+                <i class="fas fa-tasks"></i>
+                <p>로딩 중...</p>
+            </div>
+        </div>
+        <!-- 시스템 상태 섹션 -->
+        <div class="system-section" id="system-section">
+            <div class="system-section__header">
+                <div class="system-section__title">
+                    <i class="fas fa-server"></i> 시스템 상태
+                </div>
+                <span id="system-update-time" style="font-size:0.65rem;color:var(--color-text-muted);"></span>
+            </div>
+            <div class="system-grid">
+                <div class="system-stat">
+                    <div class="system-stat__label">CPU</div>
+                    <div class="system-stat__value" id="sys-cpu">-</div>
+                </div>
+                <div class="system-stat">
+                    <div class="system-stat__label">메모리</div>
+                    <div class="system-stat__value" id="sys-mem">-</div>
+                    <div class="system-stat__sub" id="sys-mem-detail"></div>
+                </div>
+                <div class="system-stat">
+                    <div class="system-stat__label">디스크</div>
+                    <div class="system-stat__value" id="sys-disk">-</div>
+                    <div class="system-stat__sub" id="sys-disk-detail"></div>
+                </div>
+            </div>
+            <div style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:0.5rem;">
+                <i class="fas fa-globe"></i> 실행 중인 서비스
+            </div>
+            <div class="services-list" id="services-list">
+                <div style="padding:0.5rem;color:var(--color-text-muted);text-align:center;font-size:0.75rem;">로딩 중...</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

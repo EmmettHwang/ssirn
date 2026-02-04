@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .gallery-grid {
             display: grid;
@@ -100,7 +101,551 @@
             transform: scale(1.1);
             box-shadow: 0 6px 30px rgba(0, 102, 255, 0.6);
         }
-        
+
+        /* Timelapse Section */
+        .timelapse-section {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .timelapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .timelapse-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            color: var(--color-text);
+        }
+
+        .timelapse-header h3 i {
+            color: var(--color-primary);
+        }
+
+        .timelapse-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .current-date {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-primary);
+            background: var(--color-bg);
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+        }
+
+        /* 날짜 슬라이더 */
+        .date-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: var(--color-bg);
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+        }
+
+        .date-nav-btn {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .date-nav-btn:hover {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        .date-slider-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .date-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--color-border);
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .date-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .date-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+        }
+
+        .date-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--color-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .date-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--color-text-muted);
+            padding: 0 10px;
+        }
+
+        /* 배속 조절 */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .speed-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            min-width: 28px;
+            height: 24px;
+            padding: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: 0.2s;
+        }
+
+        .speed-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .speed-btn.active {
+            background: var(--color-primary);
+        }
+
+        .speed-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.65rem;
+            margin-right: 4px;
+        }
+
+        /* 카메라 그리드 - 3열 */
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .cameras-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .camera-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .camera-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 0.875rem;
+        }
+
+        .camera-card__title {
+            font-weight: 600;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .camera-card__title i {
+            color: var(--color-primary);
+        }
+
+        .camera-card__status {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .camera-card__status.loading {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .camera-card__status.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .camera-player {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+        }
+
+        .camera-player img,
+        .camera-player video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .camera-player video {
+            background: #000;
+        }
+
+        .camera-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
+
+        .camera-loading i {
+            font-size: 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        .camera-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b6b;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 1rem 0.75rem 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .camera-player:hover .camera-controls {
+            opacity: 1;
+        }
+
+        .cam-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cam-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .cam-progress {
+            flex: 1;
+            height: 3px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .cam-progress-fill {
+            height: 100%;
+            background: var(--color-primary);
+            transition: width 0.1s;
+        }
+
+        .cam-info {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.65rem;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Dashboard Section */
+        .dashboard-section {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            color: var(--color-text);
+        }
+
+        .dashboard-header h3 i {
+            color: var(--color-primary);
+        }
+
+        .dashboard-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dashboard-controls input {
+            padding: 8px 12px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            color: var(--color-text);
+            font-size: 0.875rem;
+        }
+
+        .dashboard-controls span {
+            color: var(--color-text-muted);
+        }
+
+        .dash-btn {
+            padding: 8px 12px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .dash-btn:hover {
+            background: #0052cc;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        .stat-icon.cat { color: #ffa500; }
+        .stat-icon.dog { color: #8b4513; }
+        .stat-icon.person { color: #00bcd4; }
+        .stat-icon.car { color: #e91e63; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .chart-section {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-section h4 {
+            font-size: 0.9rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-section h4 i {
+            color: var(--color-primary);
+        }
+
+        .chart-container {
+            height: 200px;
+        }
+
+        .detections-section h4 {
+            font-size: 0.9rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detections-section h4 i {
+            color: var(--color-primary);
+        }
+
+        .detections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .detection-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .detection-card img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+        }
+
+        .detection-card__info {
+            padding: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .detection-card__class {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .detection-card__time {
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .detection-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            margin-left: 0.25rem;
+        }
+
+        .detection-badge.cat { background: #ffa500; color: #000; }
+        .detection-badge.dog { background: #8b4513; color: #fff; }
+        .detection-badge.person { background: #00bcd4; color: #fff; }
+        .detection-badge.car { background: #e91e63; color: #fff; }
+
+        .detection-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-muted);
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -242,12 +787,171 @@
             .gallery-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .add-btn {
                 bottom: 1rem;
                 right: 1rem;
                 width: 56px;
                 height: 56px;
+            }
+        }
+
+        /* 갤러리 라이트박스 */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox__content {
+            position: relative;
+            max-width: 90%;
+            max-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox__content img {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox__content iframe {
+            width: 80vw;
+            height: 45vw;
+            max-height: 70vh;
+            border-radius: 8px;
+        }
+
+        .lightbox__close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 2001;
+            transition: 0.2s;
+        }
+
+        .lightbox__close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .lightbox__nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lightbox__nav:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .lightbox__nav--prev {
+            left: 1rem;
+        }
+
+        .lightbox__nav--next {
+            right: 1rem;
+        }
+
+        .lightbox__controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(0,0,0,0.7);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+        }
+
+        .lightbox__btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lightbox__btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .lightbox__btn.active {
+            background: var(--color-primary);
+        }
+
+        .lightbox__counter {
+            color: white;
+            font-size: 0.9rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .lightbox__desc {
+            position: absolute;
+            bottom: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0,0,0,0.6);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            max-width: 80%;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .gallery-item {
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .lightbox__nav {
+                width: 44px;
+                height: 44px;
+                font-size: 1rem;
+            }
+            .lightbox__content iframe {
+                width: 95vw;
+                height: 53vw;
             }
         }
     </style>
@@ -302,54 +1006,117 @@
         </div>
     </section>
 
-    <!-- Gallery Section -->
+    <!-- Timelapse Section -->
     <section class="section">
         <div class="container">
+            <div class="timelapse-section">
+                <div class="timelapse-header">
+                    <h3><i class="fas fa-clock"></i> <span data-kr="연구 현장 타임랩스" data-en="Research Timelapse">연구 현장 타임랩스</span></h3>
+                    <div class="timelapse-controls">
+                        <span class="current-date" id="current-date-label">로딩 중...</span>
+                    </div>
+                </div>
+                <div class="cameras-grid" id="cameras-grid">
+                    <!-- 카메라 카드들이 동적으로 생성됨 -->
+                </div>
+                <!-- 날짜 슬라이더 -->
+                <div class="date-slider-container">
+                    <button class="date-nav-btn" id="date-prev-btn" onclick="prevDate()"><i class="fas fa-chevron-left"></i></button>
+                    <div class="date-slider-wrapper">
+                        <input type="range" class="date-slider" id="date-slider" min="0" max="0" value="0">
+                        <div class="date-labels" id="date-labels"></div>
+                    </div>
+                    <button class="date-nav-btn" id="date-next-btn" onclick="nextDate()"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section class="section" style="padding-top: 0;">
+        <div class="container">
+            <div class="dashboard-section">
+                <div class="dashboard-header">
+                    <h3><i class="fas fa-chart-line"></i> <span data-kr="객체 탐지 현황" data-en="Detection Dashboard">객체 탐지 현황</span></h3>
+                    <div class="dashboard-controls">
+                        <input type="date" id="dash-date-from">
+                        <span>~</span>
+                        <input type="date" id="dash-date-to">
+                        <button class="dash-btn" onclick="loadDashboard()"><i class="fas fa-sync"></i></button>
+                    </div>
+                </div>
+                <!-- 통계 카드 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-eye"></i></div>
+                        <div class="stat-value" id="stat-total">-</div>
+                        <div class="stat-label">총 탐지</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon cat"><i class="fas fa-cat"></i></div>
+                        <div class="stat-value" id="stat-cats">-</div>
+                        <div class="stat-label">고양이</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon dog"><i class="fas fa-dog"></i></div>
+                        <div class="stat-value" id="stat-dogs">-</div>
+                        <div class="stat-label">개</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon person"><i class="fas fa-user"></i></div>
+                        <div class="stat-value" id="stat-persons">-</div>
+                        <div class="stat-label">사람</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon car"><i class="fas fa-car"></i></div>
+                        <div class="stat-value" id="stat-cars">-</div>
+                        <div class="stat-label">자동차</div>
+                    </div>
+                </div>
+                <!-- 시간대별 차트 -->
+                <div class="chart-section">
+                    <h4><i class="fas fa-clock"></i> 시간대별 출몰</h4>
+                    <div class="chart-container">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+                <!-- 최근 탐지 -->
+                <div class="detections-section">
+                    <h4><i class="fas fa-images"></i> 최근 탐지</h4>
+                    <div class="detections-grid" id="detections-grid">
+                        <div class="detection-empty">데이터 로딩 중...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="section" style="padding-top: 0;">
+        <div class="container">
+            <div class="section__header" style="margin-bottom: 1.5rem;">
+                <h2 class="section__title" data-kr="갤러리" data-en="Gallery">갤러리</h2>
+            </div>
             <div id="empty-state" class="empty-state">
                 <i class="fas fa-image"></i>
                 <p data-kr="아직 갤러리가 비어있습니다" data-en="Gallery is empty">아직 갤러리가 비어있습니다</p>
-                <p data-kr="우측 하단의 + 버튼을 눌러 첫 번째 항목을 추가해보세요" data-en="Click the + button to add your first item">우측 하단의 + 버튼을 눌러 첫 번째 항목을 추가해보세요</p>
             </div>
             <div id="gallery-grid" class="gallery-grid"></div>
         </div>
     </section>
 
-    <!-- Add Button -->
-    <button class="add-btn" id="add-btn" aria-label="Add item">
-        <i class="fas fa-plus"></i>
-    </button>
-
-    <!-- Add Modal -->
-    <div class="modal" id="modal">
-        <div class="modal__content">
-            <div class="modal__header">
-                <h2 class="modal__title" data-kr="항목 추가" data-en="Add Item">항목 추가</h2>
-                <button class="modal__close" id="modal-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="add-form">
-                <div class="form-group">
-                    <label data-kr="URL" data-en="URL">URL</label>
-                    <input 
-                        type="url" 
-                        id="item-url" 
-                        placeholder="YouTube URL 또는 이미지 URL"
-                        required
-                    >
-                </div>
-                <div class="form-group">
-                    <label data-kr="설명 (선택)" data-en="Description (Optional)">설명 (선택)</label>
-                    <textarea 
-                        id="item-description" 
-                        placeholder="간단한 설명을 입력하세요"
-                    ></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" id="cancel-btn" data-kr="취소" data-en="Cancel">취소</button>
-                    <button type="submit" class="btn-submit" data-kr="추가" data-en="Add">추가</button>
-                </div>
-            </form>
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox__close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+        <button class="lightbox__nav lightbox__nav--prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox__nav lightbox__nav--next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
+        <div class="lightbox__content" id="lightbox-content"></div>
+        <div class="lightbox__desc" id="lightbox-desc"></div>
+        <div class="lightbox__controls">
+            <button class="lightbox__btn" id="lightbox-prev-btn" onclick="prevSlide()"><i class="fas fa-step-backward"></i></button>
+            <button class="lightbox__btn" id="lightbox-play-btn" onclick="toggleAutoPlay()"><i class="fas fa-play"></i></button>
+            <button class="lightbox__btn" id="lightbox-next-btn" onclick="nextSlide()"><i class="fas fa-step-forward"></i></button>
+            <span class="lightbox__counter" id="lightbox-counter">1/1</span>
         </div>
     </div>
 
@@ -382,186 +1149,700 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Simple Gallery Manager
-        class SimpleGallery {
-            constructor() {
-                this.items = this.loadItems();
-                this.init();
-            }
+        // 카메라 설정 (서버에서 로드)
+        let CAMERAS = [];
+        let globalDate = null;
+        let players = {};
 
-            init() {
+        // 카메라 플레이어 클래스
+        class CameraPlayer {
+            constructor(cameraId, cameraName, container) {
+                this.cameraId = cameraId;
+                this.cameraName = cameraName;
+                this.container = container;
+                this.images = [];
+                this.currentIndex = 0;
+                this.isPlaying = false;
+                this.interval = null;
+                this.speed = 3000; // 0.1배속 기본값 (300ms / 0.1 = 3000ms)
+                this.speedMultiplier = 0.1; // 현재 배속 저장 (기본 0.1x)
+                this.mode = 'image';
+                this.hasVideo = false;
+                this.currentDate = null;
+
                 this.render();
-                this.setupEvents();
-            }
-
-            setupEvents() {
-                document.getElementById('add-btn').addEventListener('click', () => this.openModal());
-                document.getElementById('modal-close').addEventListener('click', () => this.closeModal());
-                document.getElementById('cancel-btn').addEventListener('click', () => this.closeModal());
-                document.getElementById('modal').addEventListener('click', (e) => {
-                    if (e.target.id === 'modal') this.closeModal();
-                });
-                document.getElementById('add-form').addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    this.addItem();
-                });
-            }
-
-            openModal() {
-                document.getElementById('modal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            closeModal() {
-                document.getElementById('modal').classList.remove('active');
-                document.body.style.overflow = '';
-                document.getElementById('add-form').reset();
-            }
-
-            isYouTubeUrl(url) {
-                return url.includes('youtube.com') || url.includes('youtu.be');
-            }
-
-            getYouTubeEmbedUrl(url) {
-                const patterns = [
-                    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-                    /youtube\.com\/shorts\/([^&\n?#]+)/
-                ];
-
-                for (const pattern of patterns) {
-                    const match = url.match(pattern);
-                    if (match && match[1]) {
-                        return `https://www.youtube.com/embed/${match[1]}?mute=1`;
-                    }
-                }
-                return null;
-            }
-
-            addItem() {
-                const url = document.getElementById('item-url').value.trim();
-                const description = document.getElementById('item-description').value.trim();
-
-                if (!url) {
-                    alert('URL을 입력해주세요.');
-                    return;
-                }
-
-                const item = {
-                    id: Date.now(),
-                    url: url,
-                    description: description,
-                    type: this.isYouTubeUrl(url) ? 'video' : 'image',
-                    createdAt: new Date().toISOString()
-                };
-
-                this.items.unshift(item);
-                this.saveItems();
-                this.render();
-                this.closeModal();
-                this.showNotification('추가되었습니다!');
-            }
-
-            deleteItem(id) {
-                if (confirm('삭제하시겠습니까?')) {
-                    this.items = this.items.filter(item => item.id !== id);
-                    this.saveItems();
-                    this.render();
-                    this.showNotification('삭제되었습니다.');
-                }
+                this.bindEvents();
             }
 
             render() {
-                const grid = document.getElementById('gallery-grid');
-                const empty = document.getElementById('empty-state');
+                this.container.innerHTML = `
+                    <div class="camera-card__header">
+                        <div class="camera-card__title">
+                            <i class="fas fa-video"></i>
+                            ${this.cameraName}
+                        </div>
+                        <span class="camera-card__status loading">로딩</span>
+                    </div>
+                    <div class="camera-player">
+                        <div class="camera-loading">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                        <img class="player-image" style="display: none;" alt="Timelapse">
+                        <video class="player-video" controls loop style="display: none;"></video>
+                        <div class="camera-error" style="display: none;"></div>
+                        <div class="speed-control" style="display: none;">
+                            <span class="speed-label">배속</span>
+                            <button class="speed-btn active" data-speed="0.1">0.1x</button>
+                            <button class="speed-btn" data-speed="0.3">0.3x</button>
+                            <button class="speed-btn" data-speed="0.5">0.5x</button>
+                            <button class="speed-btn" data-speed="1">1x</button>
+                            <button class="speed-btn" data-speed="2">2x</button>
+                            <button class="speed-btn" data-speed="4">4x</button>
+                        </div>
+                        <div class="camera-controls" style="display: none;">
+                            <button class="cam-btn prev-btn"><i class="fas fa-step-backward"></i></button>
+                            <button class="cam-btn play-btn"><i class="fas fa-play"></i></button>
+                            <button class="cam-btn next-btn"><i class="fas fa-step-forward"></i></button>
+                            <div class="cam-progress">
+                                <div class="cam-progress-fill"></div>
+                            </div>
+                            <div class="cam-info">0/0</div>
+                        </div>
+                    </div>
+                `;
 
-                if (this.items.length === 0) {
+                this.el = {
+                    status: this.container.querySelector('.camera-card__status'),
+                    loading: this.container.querySelector('.camera-loading'),
+                    image: this.container.querySelector('.player-image'),
+                    video: this.container.querySelector('.player-video'),
+                    error: this.container.querySelector('.camera-error'),
+                    controls: this.container.querySelector('.camera-controls'),
+                    playBtn: this.container.querySelector('.play-btn'),
+                    prevBtn: this.container.querySelector('.prev-btn'),
+                    nextBtn: this.container.querySelector('.next-btn'),
+                    progress: this.container.querySelector('.cam-progress'),
+                    progressFill: this.container.querySelector('.cam-progress-fill'),
+                    info: this.container.querySelector('.cam-info'),
+                    speedControl: this.container.querySelector('.speed-control'),
+                    speedBtns: this.container.querySelectorAll('.speed-btn')
+                };
+            }
+
+            bindEvents() {
+                this.el.playBtn.addEventListener('click', () => this.togglePlay());
+                this.el.prevBtn.addEventListener('click', () => this.prev());
+                this.el.nextBtn.addEventListener('click', () => this.next());
+                this.el.progress.addEventListener('click', (e) => {
+                    const rect = e.target.getBoundingClientRect();
+                    const pct = (e.clientX - rect.left) / rect.width;
+                    this.currentIndex = Math.floor(pct * this.images.length);
+                    this.updateDisplay();
+                });
+
+                // 배속 버튼 이벤트
+                this.el.speedBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const speed = parseFloat(btn.dataset.speed);
+                        this.setSpeed(speed);
+                        this.el.speedBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+            }
+
+            setSpeed(speed) {
+                this.speedMultiplier = speed; // 배속 저장
+                if (this.mode === 'video') {
+                    this.el.video.playbackRate = speed;
+                } else {
+                    // 이미지 모드: 기본 300ms 기준으로 속도 조절
+                    this.speed = 300 / speed;
+                    if (this.isPlaying) {
+                        this.stop();
+                        this.play();
+                    }
+                }
+            }
+
+            // 저장된 배속 적용
+            applyStoredSpeed() {
+                // 버튼 상태 업데이트
+                this.el.speedBtns.forEach(btn => {
+                    const btnSpeed = parseFloat(btn.dataset.speed);
+                    btn.classList.toggle('active', btnSpeed === this.speedMultiplier);
+                });
+                // 배속 적용
+                if (this.mode === 'video') {
+                    this.el.video.playbackRate = this.speedMultiplier;
+                } else {
+                    this.speed = 300 / this.speedMultiplier;
+                }
+            }
+
+            async loadData(date) {
+                this.stop();
+                this.images = [];
+                this.currentIndex = 0;
+                this.currentDate = date;
+                this.showLoading();
+
+                try {
+                    // 먼저 동영상이 있는지 확인
+                    await this.checkVideoStatus(date);
+
+                    if (this.hasVideo) {
+                        // 동영상이 있으면 동영상 재생
+                        this.showVideoPlayer(date);
+                    } else {
+                        // 동영상이 없으면 이미지 로드
+                        const res = await fetch(`/api/feed/list?date=${date}&camera=${this.cameraId}`);
+                        const data = await res.json();
+
+                        if (!data.success || data.files.length === 0) {
+                            this.showError('데이터 없음');
+                            return;
+                        }
+
+                        this.images = data.files;
+                        this.showImagePlayer();
+                        // 자동 재생 시작
+                        this.play();
+                    }
+                } catch (e) {
+                    console.error('Load error:', e);
+                    this.showError('연결 오류');
+                }
+            }
+
+            async checkVideoStatus(date) {
+                try {
+                    const res = await fetch(`/api/feed/status/${this.cameraId}/${date}`);
+                    const data = await res.json();
+                    this.hasVideo = data.hasVideo;
+                } catch {
+                    this.hasVideo = false;
+                }
+            }
+
+            showLoading() {
+                this.el.loading.style.display = 'flex';
+                this.el.image.style.display = 'none';
+                this.el.video.style.display = 'none';
+                this.el.error.style.display = 'none';
+                this.el.controls.style.display = 'none';
+                this.el.speedControl.style.display = 'none';
+                this.el.status.textContent = '로딩';
+                this.el.status.className = 'camera-card__status loading';
+            }
+
+            showError(msg) {
+                this.el.loading.style.display = 'none';
+                this.el.image.style.display = 'none';
+                this.el.video.style.display = 'none';
+                this.el.error.style.display = 'flex';
+                this.el.error.textContent = msg;
+                this.el.controls.style.display = 'none';
+                this.el.speedControl.style.display = 'none';
+                this.el.status.textContent = '오류';
+                this.el.status.className = 'camera-card__status error';
+            }
+
+            showImagePlayer() {
+                this.mode = 'image';
+                this.el.loading.style.display = 'none';
+                this.el.error.style.display = 'none';
+                this.el.video.style.display = 'none';
+                this.el.image.style.display = 'block';
+                this.el.controls.style.display = 'flex';
+                this.el.speedControl.style.display = 'flex';
+                this.el.status.textContent = '이미지';
+                this.el.status.className = 'camera-card__status';
+                this.applyStoredSpeed(); // 저장된 배속 적용
+                this.updateDisplay();
+            }
+
+            showVideoPlayer(date) {
+                this.mode = 'video';
+                this.el.loading.style.display = 'none';
+                this.el.error.style.display = 'none';
+                this.el.controls.style.display = 'none';
+                this.el.image.style.display = 'none';
+                this.el.video.style.display = 'block';
+                this.el.speedControl.style.display = 'flex';
+                this.el.video.src = `/api/feed/video/${this.cameraId}/${date}`;
+                this.applyStoredSpeed(); // 저장된 배속 적용
+                this.el.video.play();
+                this.el.status.textContent = '동영상';
+                this.el.status.className = 'camera-card__status';
+            }
+
+            togglePlay() {
+                this.isPlaying ? this.stop() : this.play();
+            }
+
+            play() {
+                if (this.images.length === 0 || this.mode === 'video') return;
+                this.isPlaying = true;
+                this.el.playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                this.el.status.textContent = '재생';
+                this.interval = setInterval(() => {
+                    this.currentIndex = (this.currentIndex + 1) % this.images.length;
+                    this.updateDisplay();
+                }, this.speed);
+            }
+
+            stop() {
+                this.isPlaying = false;
+                this.el.playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                if (this.images.length > 0 && this.mode === 'image') this.el.status.textContent = '이미지';
+                if (this.interval) { clearInterval(this.interval); this.interval = null; }
+            }
+
+            prev() {
+                if (this.mode === 'video') return;
+                this.currentIndex = (this.currentIndex - 1 + this.images.length) % this.images.length;
+                this.updateDisplay();
+            }
+
+            next() {
+                if (this.mode === 'video') return;
+                this.currentIndex = (this.currentIndex + 1) % this.images.length;
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                if (this.images.length === 0) return;
+                const img = this.images[this.currentIndex];
+                this.el.image.src = `/api/feed/image/${this.cameraId}/${img.date}/${img.name}`;
+                this.el.info.textContent = `${this.currentIndex + 1}/${this.images.length}`;
+                this.el.progressFill.style.width = `${((this.currentIndex + 1) / this.images.length) * 100}%`;
+            }
+        }
+
+        // 날짜 목록
+        let dateList = [];
+        let currentDateIndex = 0;
+
+        // 타임랩스 초기화
+        async function initTimelapse() {
+            const grid = document.getElementById('cameras-grid');
+            grid.innerHTML = '<div style="padding:2rem;color:var(--color-text-muted);">카메라 로딩 중...</div>';
+
+            // 공개 카메라 목록 가져오기
+            try {
+                const camRes = await fetch('/api/timelapse/cameras');
+                const camData = await camRes.json();
+                if (camData.success && camData.cameras.length > 0) {
+                    CAMERAS = camData.cameras;
+                } else {
+                    CAMERAS = [
+                        { id: 'feed', name: '메인 카메라' },
+                        { id: 'west', name: '서쪽 카메라' },
+                        { id: 'roof', name: '지붕 카메라' }
+                    ];
+                }
+            } catch (e) {
+                CAMERAS = [
+                    { id: 'feed', name: '메인 카메라' },
+                    { id: 'west', name: '서쪽 카메라' },
+                    { id: 'roof', name: '지붕 카메라' }
+                ];
+            }
+
+            grid.innerHTML = '';
+            CAMERAS.forEach(cam => {
+                const card = document.createElement('div');
+                card.className = 'camera-card';
+                grid.appendChild(card);
+                players[cam.id] = new CameraPlayer(cam.id, cam.name, card);
+            });
+
+            // 날짜 로드
+            try {
+                const firstCam = CAMERAS[0]?.id || 'feed';
+                const res = await fetch(`/api/feed/dates?camera=${firstCam}`);
+                const data = await res.json();
+
+                if (data.success && data.dates.length > 0) {
+                    dateList = data.dates; // 최신순 (내림차순)
+                    currentDateIndex = 0;
+                    initDateSlider();
+                    globalDate = dateList[0];
+                    updateDateLabel();
+                    loadAllCameras(globalDate);
+                } else {
+                    document.getElementById('current-date-label').textContent = '데이터 없음';
+                }
+            } catch (e) {
+                document.getElementById('current-date-label').textContent = '연결 오류';
+            }
+        }
+
+        // 날짜 슬라이더 초기화
+        function initDateSlider() {
+            const slider = document.getElementById('date-slider');
+            const labels = document.getElementById('date-labels');
+
+            slider.min = 0;
+            slider.max = dateList.length - 1;
+            slider.value = 0;
+
+            slider.addEventListener('input', (e) => {
+                currentDateIndex = parseInt(e.target.value);
+                globalDate = dateList[currentDateIndex];
+                updateDateLabel();
+                loadAllCameras(globalDate);
+            });
+
+            // 라벨 표시 (처음, 중간, 끝)
+            if (dateList.length > 0) {
+                const first = dateList[0];
+                const last = dateList[dateList.length - 1];
+                labels.innerHTML = `
+                    <span>${formatShortDate(first)}</span>
+                    <span>최신 ← → 과거</span>
+                    <span>${formatShortDate(last)}</span>
+                `;
+            }
+        }
+
+        // 날짜 라벨 업데이트
+        function updateDateLabel() {
+            const label = document.getElementById('current-date-label');
+            label.textContent = formatDateWithDay(globalDate);
+            document.getElementById('date-slider').value = currentDateIndex;
+        }
+
+        // 이전 날짜 (더 최신)
+        function prevDate() {
+            if (currentDateIndex > 0) {
+                currentDateIndex--;
+                globalDate = dateList[currentDateIndex];
+                updateDateLabel();
+                loadAllCameras(globalDate);
+            }
+        }
+
+        // 다음 날짜 (더 과거)
+        function nextDate() {
+            if (currentDateIndex < dateList.length - 1) {
+                currentDateIndex++;
+                globalDate = dateList[currentDateIndex];
+                updateDateLabel();
+                loadAllCameras(globalDate);
+            }
+        }
+
+        // 짧은 날짜 포맷
+        function formatShortDate(dateStr) {
+            return `${dateStr.slice(4,6)}/${dateStr.slice(6,8)}`;
+        }
+
+        // 요일 이름
+        const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+        function formatDateWithDay(dateStr) {
+            const year = dateStr.slice(0, 4);
+            const month = dateStr.slice(4, 6);
+            const day = dateStr.slice(6, 8);
+            const date = new Date(`${year}-${month}-${day}`);
+            const dayName = DAY_NAMES[date.getDay()];
+            return `${year}-${month}-${day} (${dayName})`;
+        }
+
+        function loadAllCameras(date) {
+            globalDate = date;
+            Object.values(players).forEach(p => p.loadData(date));
+        }
+
+        // Initialize Timelapse
+        document.addEventListener('DOMContentLoaded', initTimelapse);
+
+        // Simple Gallery (읽기 전용 - 관리자 페이지에서 관리)
+        let galleryItems = [];
+        let currentSlide = 0;
+        let autoPlayInterval = null;
+        let isAutoPlaying = false;
+        const AUTO_PLAY_DELAY = 5000; // 5초
+
+        async function loadGallery() {
+            const grid = document.getElementById('gallery-grid');
+            const empty = document.getElementById('empty-state');
+
+            try {
+                const res = await fetch('/api/gallery');
+                const data = await res.json();
+
+                if (!data.success || !data.items || data.items.length === 0) {
                     grid.style.display = 'none';
                     empty.style.display = 'block';
+                    galleryItems = [];
                     return;
                 }
 
+                galleryItems = data.items;
                 grid.style.display = 'grid';
                 empty.style.display = 'none';
 
-                grid.innerHTML = this.items.map(item => {
+                grid.innerHTML = data.items.map((item, index) => {
                     let mediaHtml;
                     if (item.type === 'video') {
-                        const embedUrl = this.getYouTubeEmbedUrl(item.url);
+                        const embedUrl = getYouTubeEmbedUrl(item.url);
                         mediaHtml = `<iframe src="${embedUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
                     } else {
                         mediaHtml = `<img src="${item.url}" alt="갤러리 이미지" loading="lazy">`;
                     }
 
-                    const date = new Date(item.createdAt).toLocaleDateString('ko-KR');
+                    const date = item.createdAt ? new Date(item.createdAt).toLocaleDateString('ko-KR') : '';
 
                     return `
-                        <div class="gallery-item">
+                        <div class="gallery-item" onclick="openLightbox(${index})">
                             <div class="gallery-item__media">
                                 ${mediaHtml}
                             </div>
                             <div class="gallery-item__content">
-                                ${item.description ? `<p class="gallery-item__description">${this.escapeHtml(item.description)}</p>` : ''}
+                                ${item.description ? `<p class="gallery-item__description">${escapeHtml(item.description)}</p>` : ''}
                                 <div class="gallery-item__meta">
                                     <span><i class="fas fa-calendar"></i> ${date}</span>
-                                    <button class="delete-btn" onclick="gallery.deleteItem(${item.id})">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>
                     `;
                 }).join('');
-            }
-
-            escapeHtml(text) {
-                const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-                return text.replace(/[&<>"']/g, m => map[m]);
-            }
-
-            loadItems() {
-                try {
-                    const stored = localStorage.getItem('simple_gallery_items');
-                    return stored ? JSON.parse(stored) : [];
-                } catch (e) {
-                    console.error('Failed to load items:', e);
-                    return [];
-                }
-            }
-
-            saveItems() {
-                try {
-                    localStorage.setItem('simple_gallery_items', JSON.stringify(this.items));
-                } catch (e) {
-                    console.error('Failed to save items:', e);
-                }
-            }
-
-            showNotification(message) {
-                const notification = document.createElement('div');
-                notification.style.cssText = `
-                    position: fixed;
-                    top: 2rem;
-                    right: 2rem;
-                    background: var(--color-primary);
-                    color: white;
-                    padding: 1rem 2rem;
-                    border-radius: 8px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-                    z-index: 10000;
-                    animation: slideIn 0.3s ease;
-                `;
-                notification.textContent = message;
-                document.body.appendChild(notification);
-
-                setTimeout(() => {
-                    notification.style.animation = 'slideOut 0.3s ease';
-                    setTimeout(() => notification.remove(), 300);
-                }, 3000);
+            } catch (e) {
+                console.error('Gallery load error:', e);
+                grid.style.display = 'none';
+                empty.style.display = 'block';
+                galleryItems = [];
             }
         }
 
-        // Initialize
-        const gallery = new SimpleGallery();
+        // 라이트박스 열기
+        function openLightbox(index) {
+            if (galleryItems.length === 0) return;
+            currentSlide = index;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updateLightbox();
+            startAutoPlay();
+        }
+
+        // 라이트박스 닫기
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+            stopAutoPlay();
+        }
+
+        // 라이트박스 업데이트
+        function updateLightbox() {
+            const item = galleryItems[currentSlide];
+            const content = document.getElementById('lightbox-content');
+            const desc = document.getElementById('lightbox-desc');
+            const counter = document.getElementById('lightbox-counter');
+
+            if (item.type === 'video') {
+                const embedUrl = getYouTubeEmbedUrl(item.url);
+                content.innerHTML = `<iframe src="${embedUrl}&autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            } else {
+                content.innerHTML = `<img src="${item.url}" alt="갤러리 이미지">`;
+            }
+
+            desc.textContent = item.description || '';
+            desc.style.display = item.description ? 'block' : 'none';
+            counter.textContent = `${currentSlide + 1}/${galleryItems.length}`;
+        }
+
+        // 이전 슬라이드
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + galleryItems.length) % galleryItems.length;
+            updateLightbox();
+            resetAutoPlayTimer();
+        }
+
+        // 다음 슬라이드
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % galleryItems.length;
+            updateLightbox();
+            resetAutoPlayTimer();
+        }
+
+        // 자동 재생 토글
+        function toggleAutoPlay() {
+            if (isAutoPlaying) {
+                stopAutoPlay();
+            } else {
+                startAutoPlay();
+            }
+        }
+
+        // 자동 재생 시작
+        function startAutoPlay() {
+            if (galleryItems.length <= 1) return;
+            isAutoPlaying = true;
+            document.getElementById('lightbox-play-btn').classList.add('active');
+            document.getElementById('lightbox-play-btn').innerHTML = '<i class="fas fa-pause"></i>';
+            autoPlayInterval = setInterval(() => {
+                nextSlide();
+            }, AUTO_PLAY_DELAY);
+        }
+
+        // 자동 재생 중지
+        function stopAutoPlay() {
+            isAutoPlaying = false;
+            document.getElementById('lightbox-play-btn').classList.remove('active');
+            document.getElementById('lightbox-play-btn').innerHTML = '<i class="fas fa-play"></i>';
+            if (autoPlayInterval) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = null;
+            }
+        }
+
+        // 자동 재생 타이머 리셋
+        function resetAutoPlayTimer() {
+            if (isAutoPlaying) {
+                clearInterval(autoPlayInterval);
+                autoPlayInterval = setInterval(() => {
+                    nextSlide();
+                }, AUTO_PLAY_DELAY);
+            }
+        }
+
+        // 키보드 이벤트
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('lightbox').classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === ' ') { e.preventDefault(); toggleAutoPlay(); }
+        });
+
+        // 라이트박스 외부 클릭 시 닫기
+        document.getElementById('lightbox').addEventListener('click', (e) => {
+            if (e.target.id === 'lightbox') closeLightbox();
+        });
+
+        function getYouTubeEmbedUrl(url) {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+                /youtube\.com\/shorts\/([^&\n?#]+)/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) {
+                    return `https://www.youtube.com/embed/${match[1]}?mute=1`;
+                }
+            }
+            return null;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Initialize Gallery
+        document.addEventListener('DOMContentLoaded', loadGallery);
+
+        // ==================== Dashboard ====================
+        let hourlyChart = null;
+
+        function initDashboard() {
+            // 기본 날짜 설정 (오늘)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('dash-date-from').value = today;
+            document.getElementById('dash-date-to').value = today;
+            loadDashboard();
+        }
+
+        async function loadDashboard() {
+            const fromDate = document.getElementById('dash-date-from').value;
+            const toDate = document.getElementById('dash-date-to').value;
+
+            // 통계 로드
+            try {
+                const res = await fetch(`/api/dashboard/stats?from=${fromDate}&to=${toDate}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('stat-total').textContent = data.total || 0;
+                    document.getElementById('stat-cats').textContent = data.cats || 0;
+                    document.getElementById('stat-dogs').textContent = data.dogs || 0;
+                    document.getElementById('stat-persons').textContent = data.persons || 0;
+                    document.getElementById('stat-cars').textContent = data.cars || 0;
+
+                    // 시간대별 차트
+                    updateHourlyChart(data.hourly || Array(24).fill(0));
+                }
+            } catch (e) {
+                console.error('Dashboard stats error:', e);
+            }
+
+            // 탐지 기록 로드
+            try {
+                const res = await fetch(`/api/dashboard/detections?from=${fromDate}&to=${toDate}&limit=12`);
+                const data = await res.json();
+
+                const grid = document.getElementById('detections-grid');
+                if (data.success && data.detections && data.detections.length > 0) {
+                    grid.innerHTML = data.detections.map(d => {
+                        let badge = '';
+                        const cls = d.object_class || d.class;
+                        if (cls === 'cat' || d.is_cat) badge = '<span class="detection-badge cat">고양이</span>';
+                        else if (cls === 'dog') badge = '<span class="detection-badge dog">개</span>';
+                        else if (cls === 'person') badge = '<span class="detection-badge person">사람</span>';
+                        else if (cls === 'car') badge = '<span class="detection-badge car">자동차</span>';
+
+                        return `
+                            <div class="detection-card">
+                                <img src="/api/feed/image/${d.date || d.image_date}/${d.image || d.image_name}" alt="${d.class || d.object_class}" loading="lazy">
+                                <div class="detection-card__info">
+                                    <div class="detection-card__class">${d.class || d.object_class}${badge}</div>
+                                    <div class="detection-card__time">${d.time || d.image_time}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    grid.innerHTML = '<div class="detection-empty"><i class="fas fa-inbox"></i><br>탐지 데이터가 없습니다<br><small><a href="/admin" style="color:var(--color-primary);">관리자 페이지</a>에서 분석 실행</small></div>';
+                }
+            } catch (e) {
+                document.getElementById('detections-grid').innerHTML = '<div class="detection-empty">데이터 로드 실패</div>';
+            }
+        }
+
+        function updateHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+            if (hourlyChart) hourlyChart.destroy();
+
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
+                    datasets: [{
+                        label: '탐지 횟수',
+                        data: data,
+                        backgroundColor: 'rgba(0, 102, 255, 0.6)',
+                        borderColor: 'rgba(0, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#a0aec0' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#a0aec0', maxRotation: 0 }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // Dashboard 초기화
+        document.addEventListener('DOMContentLoaded', initDashboard);
     </script>
 </body>
 </html>

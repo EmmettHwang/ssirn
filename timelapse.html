@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-kr="타임랩스 | 지기술" data-en="Timelapse | G-TECH">타임랩스 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .timelapse-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .global-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+        }
+
+        .global-controls label {
+            color: var(--color-text);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .global-controls label i {
+            color: var(--color-primary);
+        }
+
+        .global-controls select {
+            padding: 10px 16px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--color-primary);
+        }
+
+        .mode-btn.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        /* 카메라 그리드 - 3열 */
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .cameras-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .camera-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .camera-card__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .camera-card__title {
+            font-weight: 600;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .camera-card__title i {
+            color: var(--color-primary);
+        }
+
+        .camera-card__status {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .camera-card__status.loading {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        .camera-card__status.error {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        /* 플레이어 영역 */
+        .player-wrapper {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+        }
+
+        .player-wrapper img,
+        .player-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .player-wrapper video {
+            display: none;
+        }
+
+        .player-wrapper.video-mode img {
+            display: none;
+        }
+
+        .player-wrapper.video-mode video {
+            display: block;
+        }
+
+        .player-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
+
+        .player-loading i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .player-error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff6b6b;
+            text-align: center;
+        }
+
+        .player-error i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 플레이어 컨트롤 */
+        .player-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 1.5rem 1rem 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .player-wrapper:hover .player-controls {
+            opacity: 1;
+        }
+
+        .ctrl-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .ctrl-btn.active {
+            background: var(--color-primary);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--color-primary);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        .frame-info {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.75rem;
+            min-width: 70px;
+            text-align: right;
+        }
+
+        /* 카드 푸터 */
+        .camera-card__footer {
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.875rem;
+        }
+
+        .frame-count {
+            color: var(--color-text-muted);
+        }
+
+        .speed-select {
+            padding: 4px 8px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 4px;
+            color: var(--color-text);
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">
+                <img src="images/logo.png" alt="지기술(G-TECH)" class="nav__logo-img">
+            </a>
+            <button class="nav__toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html" class="nav__link" data-kr="홈" data-en="Home">홈</a></li>
+                    <li class="nav__item"><a href="vision.html" class="nav__link" data-kr="비전" data-en="Vision">비전</a></li>
+                    <li class="nav__item"><a href="technology.html" class="nav__link" data-kr="SSIRN 기술" data-en="SSIRN Tech">SSIRN 기술</a></li>
+                    <li class="nav__item"><a href="products.html" class="nav__link" data-kr="제품" data-en="Products">제품</a></li>
+                    <li class="nav__item"><a href="gallery.html" class="nav__link" data-kr="연구 갤러리" data-en="Gallery">연구 갤러리</a></li>
+                    <li class="nav__item"><a href="contact.html" class="nav__link" data-kr="문의" data-en="Contact">문의</a></li>
+                </ul>
+                <button class="nav__lang-toggle" id="lang-toggle"><span class="nav__lang-text">EN</span></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero hero--small">
+        <div class="hero__overlay"></div>
+        <div class="container hero__container">
+            <h1 class="hero__title" data-kr="타임랩스" data-en="Timelapse">타임랩스</h1>
+            <p class="hero__subtitle" data-kr="연구 현장의 실시간 기록" data-en="Real-time Research Documentation">연구 현장의 실시간 기록</p>
+        </div>
+    </section>
+
+    <!-- Timelapse Section -->
+    <section class="section">
+        <div class="timelapse-container">
+            <!-- 전역 컨트롤 -->
+            <div class="global-controls">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <label>
+                        <i class="fas fa-calendar"></i>
+                        날짜:
+                    </label>
+                    <select id="date-select">
+                        <option value="">로딩 중...</option>
+                    </select>
+                </div>
+                <div class="mode-toggle">
+                    <button class="mode-btn active" data-mode="image" onclick="setGlobalMode('image')">
+                        <i class="fas fa-images"></i> 이미지
+                    </button>
+                    <button class="mode-btn" data-mode="video" onclick="setGlobalMode('video')">
+                        <i class="fas fa-video"></i> 동영상
+                    </button>
+                </div>
+            </div>
+
+            <!-- 카메라 그리드 -->
+            <div class="cameras-grid" id="cameras-grid">
+                <!-- 카메라 카드들이 여기에 동적으로 생성됨 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__content">
+                <div class="footer__section">
+                    <img src="images/logo.png" alt="지기술(G-TECH)" class="footer__logo">
+                    <p class="footer__text" data-kr="인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 기업" data-en="Creating AI that understands, builds, and serves humanity">
+                        인공지능을 이해하고 만들고 활용하여<br>인류에게 도움이 되는 기업
+                    </p>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2026 지기술(G-TECH). All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // 카메라 설정
+        const CAMERAS = [
+            { id: 'feed', name: '메인 카메라', icon: 'fa-video' },
+            { id: 'west', name: '서쪽 카메라', icon: 'fa-compass-west' },
+            { id: 'roof', name: '지붕 카메라', icon: 'fa-house' }
+        ];
+
+        // 전역 상태
+        let globalDate = null;
+        let globalMode = 'image'; // 'image' or 'video'
+        let players = {};
+
+        // 카메라 플레이어 클래스
+        class CameraPlayer {
+            constructor(cameraId, cameraName, container) {
+                this.cameraId = cameraId;
+                this.cameraName = cameraName;
+                this.container = container;
+                this.images = [];
+                this.currentIndex = 0;
+                this.isPlaying = false;
+                this.interval = null;
+                this.speed = 500;
+                this.mode = 'image';
+                this.hasVideo = false;
+
+                this.render();
+                this.bindEvents();
+            }
+
+            render() {
+                this.container.innerHTML = `
+                    <div class="camera-card__header">
+                        <div class="camera-card__title">
+                            <i class="fas fa-video"></i>
+                            ${this.cameraName}
+                        </div>
+                        <span class="camera-card__status loading">로딩 중</span>
+                    </div>
+                    <div class="player-wrapper" data-camera="${this.cameraId}">
+                        <div class="player-loading">
+                            <i class="fas fa-spinner"></i>
+                            <p>로딩 중...</p>
+                        </div>
+                        <img class="player-image" style="display: none;" alt="Timelapse frame">
+                        <video class="player-video" controls style="display: none;"></video>
+                        <div class="player-error" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p class="error-message">오류</p>
+                        </div>
+                        <div class="player-controls" style="display: none;">
+                            <button class="ctrl-btn prev-btn" title="이전">
+                                <i class="fas fa-step-backward"></i>
+                            </button>
+                            <button class="ctrl-btn play-btn" title="재생/일시정지">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="ctrl-btn next-btn" title="다음">
+                                <i class="fas fa-step-forward"></i>
+                            </button>
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <div class="frame-info">0 / 0</div>
+                        </div>
+                    </div>
+                    <div class="camera-card__footer">
+                        <span class="frame-count">프레임: -</span>
+                        <select class="speed-select">
+                            <option value="1000">0.5x</option>
+                            <option value="500" selected>1x</option>
+                            <option value="250">2x</option>
+                            <option value="100">4x</option>
+                            <option value="50">8x</option>
+                        </select>
+                    </div>
+                `;
+
+                // 요소 캐시
+                this.elements = {
+                    status: this.container.querySelector('.camera-card__status'),
+                    wrapper: this.container.querySelector('.player-wrapper'),
+                    loading: this.container.querySelector('.player-loading'),
+                    image: this.container.querySelector('.player-image'),
+                    video: this.container.querySelector('.player-video'),
+                    error: this.container.querySelector('.player-error'),
+                    errorMsg: this.container.querySelector('.error-message'),
+                    controls: this.container.querySelector('.player-controls'),
+                    playBtn: this.container.querySelector('.play-btn'),
+                    prevBtn: this.container.querySelector('.prev-btn'),
+                    nextBtn: this.container.querySelector('.next-btn'),
+                    progressBar: this.container.querySelector('.progress-bar'),
+                    progressFill: this.container.querySelector('.progress-fill'),
+                    frameInfo: this.container.querySelector('.frame-info'),
+                    frameCount: this.container.querySelector('.frame-count'),
+                    speedSelect: this.container.querySelector('.speed-select')
+                };
+            }
+
+            bindEvents() {
+                this.elements.playBtn.addEventListener('click', () => this.togglePlay());
+                this.elements.prevBtn.addEventListener('click', () => this.prev());
+                this.elements.nextBtn.addEventListener('click', () => this.next());
+                this.elements.speedSelect.addEventListener('change', (e) => {
+                    this.speed = parseInt(e.target.value);
+                    if (this.isPlaying) {
+                        this.stop();
+                        this.play();
+                    }
+                });
+                this.elements.progressBar.addEventListener('click', (e) => {
+                    const rect = e.target.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    this.currentIndex = Math.floor(percent * this.images.length);
+                    this.updateDisplay();
+                });
+            }
+
+            async loadImages(date) {
+                this.stop();
+                this.images = [];
+                this.currentIndex = 0;
+
+                this.showLoading();
+
+                try {
+                    const response = await fetch(`/api/feed/list?date=${date}&camera=${this.cameraId}`);
+                    const data = await response.json();
+
+                    if (!data.success || data.files.length === 0) {
+                        this.showError(data.error || '이미지가 없습니다');
+                        return;
+                    }
+
+                    this.images = data.files;
+                    this.elements.frameCount.textContent = `프레임: ${this.images.length}`;
+
+                    // 동영상 상태 확인
+                    await this.checkVideoStatus(date);
+
+                    if (this.mode === 'image') {
+                        this.showImagePlayer();
+                    } else {
+                        this.showVideoPlayer(date);
+                    }
+                } catch (error) {
+                    this.showError('연결 오류: ' + error.message);
+                }
+            }
+
+            async checkVideoStatus(date) {
+                try {
+                    const response = await fetch(`/api/feed/status/${this.cameraId}/${date}`);
+                    const data = await response.json();
+                    this.hasVideo = data.hasVideo;
+                } catch {
+                    this.hasVideo = false;
+                }
+            }
+
+            showLoading() {
+                this.elements.loading.style.display = 'flex';
+                this.elements.image.style.display = 'none';
+                this.elements.video.style.display = 'none';
+                this.elements.error.style.display = 'none';
+                this.elements.controls.style.display = 'none';
+                this.elements.status.textContent = '로딩 중';
+                this.elements.status.className = 'camera-card__status loading';
+            }
+
+            showError(message) {
+                this.elements.loading.style.display = 'none';
+                this.elements.image.style.display = 'none';
+                this.elements.video.style.display = 'none';
+                this.elements.error.style.display = 'flex';
+                this.elements.errorMsg.textContent = message;
+                this.elements.controls.style.display = 'none';
+                this.elements.status.textContent = '오류';
+                this.elements.status.className = 'camera-card__status error';
+            }
+
+            showImagePlayer() {
+                this.mode = 'image';
+                this.elements.loading.style.display = 'none';
+                this.elements.error.style.display = 'none';
+                this.elements.video.style.display = 'none';
+                this.elements.image.style.display = 'block';
+                this.elements.controls.style.display = 'flex';
+                this.elements.status.textContent = '준비됨';
+                this.elements.status.className = 'camera-card__status';
+                this.elements.wrapper.classList.remove('video-mode');
+
+                this.updateDisplay();
+            }
+
+            showVideoPlayer(date) {
+                this.mode = 'video';
+                this.elements.loading.style.display = 'none';
+                this.elements.error.style.display = 'none';
+                this.elements.controls.style.display = 'none';
+
+                if (this.hasVideo) {
+                    this.elements.image.style.display = 'none';
+                    this.elements.video.style.display = 'block';
+                    this.elements.video.src = `/api/feed/video/${this.cameraId}/${date}`;
+                    this.elements.wrapper.classList.add('video-mode');
+                    this.elements.status.textContent = '동영상';
+                    this.elements.status.className = 'camera-card__status';
+                } else {
+                    this.showError('동영상 없음 - 관리자 페이지에서 변환하세요');
+                }
+            }
+
+            setMode(mode, date) {
+                if (mode === this.mode) return;
+
+                this.stop();
+
+                if (mode === 'video') {
+                    this.showVideoPlayer(date);
+                } else {
+                    if (this.images.length > 0) {
+                        this.showImagePlayer();
+                    }
+                }
+            }
+
+            togglePlay() {
+                if (this.isPlaying) {
+                    this.stop();
+                } else {
+                    this.play();
+                }
+            }
+
+            play() {
+                if (this.images.length === 0 || this.mode === 'video') return;
+
+                this.isPlaying = true;
+                this.elements.playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                this.elements.status.textContent = '재생 중';
+
+                this.interval = setInterval(() => {
+                    this.currentIndex++;
+                    if (this.currentIndex >= this.images.length) {
+                        this.currentIndex = 0;
+                    }
+                    this.updateDisplay();
+                }, this.speed);
+            }
+
+            stop() {
+                this.isPlaying = false;
+                this.elements.playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                if (this.images.length > 0) {
+                    this.elements.status.textContent = '준비됨';
+                }
+
+                if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+                }
+            }
+
+            prev() {
+                if (this.mode === 'video') return;
+                this.currentIndex--;
+                if (this.currentIndex < 0) {
+                    this.currentIndex = this.images.length - 1;
+                }
+                this.updateDisplay();
+            }
+
+            next() {
+                if (this.mode === 'video') return;
+                this.currentIndex++;
+                if (this.currentIndex >= this.images.length) {
+                    this.currentIndex = 0;
+                }
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                if (this.images.length === 0) return;
+
+                const img = this.images[this.currentIndex];
+                this.elements.image.src = `/api/feed/image/${this.cameraId}/${img.date}/${img.name}`;
+                this.elements.frameInfo.textContent = `${this.currentIndex + 1} / ${this.images.length}`;
+
+                const progress = ((this.currentIndex + 1) / this.images.length) * 100;
+                this.elements.progressFill.style.width = `${progress}%`;
+            }
+        }
+
+        // 초기화
+        async function init() {
+            // 카메라 그리드 생성
+            const grid = document.getElementById('cameras-grid');
+            grid.innerHTML = '';
+
+            CAMERAS.forEach(cam => {
+                const card = document.createElement('div');
+                card.className = 'camera-card';
+                card.id = `camera-${cam.id}`;
+                grid.appendChild(card);
+
+                players[cam.id] = new CameraPlayer(cam.id, cam.name, card);
+            });
+
+
+            // 날짜 로드
+            await loadDates();
+
+            // 날짜 변경 이벤트
+            document.getElementById('date-select').addEventListener('change', (e) => {
+                if (e.target.value) {
+                    globalDate = e.target.value;
+                    loadAllCameras(globalDate);
+                }
+            });
+        }
+
+        // 요일 이름
+        const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+
+        function formatDateWithDay(dateStr) {
+            const year = dateStr.slice(0, 4);
+            const month = dateStr.slice(4, 6);
+            const day = dateStr.slice(6, 8);
+            const date = new Date(`${year}-${month}-${day}`);
+            const dayName = DAY_NAMES[date.getDay()];
+            return `${year}-${month}-${day} (${dayName})`;
+        }
+
+        async function loadDates() {
+            try {
+                // feed 카메라 기준으로 날짜 목록 가져오기
+                const response = await fetch('/api/feed/dates?camera=feed');
+                const data = await response.json();
+
+                const select = document.getElementById('date-select');
+                if (data.success && data.dates.length > 0) {
+                    select.innerHTML = data.dates.map(d => {
+                        const formatted = formatDateWithDay(d);
+                        return `<option value="${d}">${formatted}</option>`;
+                    }).join('');
+
+                    globalDate = data.dates[0];
+                    loadAllCameras(globalDate);
+                } else {
+                    select.innerHTML = '<option value="">날짜 없음</option>';
+                }
+            } catch (error) {
+                console.error('날짜 로드 오류:', error);
+            }
+        }
+
+        function loadAllCameras(date) {
+            Object.values(players).forEach(player => {
+                player.loadImages(date);
+            });
+        }
+
+        function setGlobalMode(mode) {
+            globalMode = mode;
+
+            // 버튼 상태 업데이트
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+
+            // 모든 플레이어 모드 변경
+            Object.values(players).forEach(player => {
+                player.setMode(mode, globalDate);
+            });
+        }
+
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

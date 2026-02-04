@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 | 지기술</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.5rem;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .dashboard-header h2 i {
+            color: var(--color-primary);
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .date-filter input {
+            padding: 10px 14px;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            font-size: 0.9rem;
+        }
+
+        .date-filter button {
+            padding: 10px 20px;
+            background: var(--color-primary);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .date-filter button:hover {
+            background: #0052cc;
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--color-primary);
+        }
+
+        .stat-card__icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card__icon.cat { color: #ffa500; }
+        .stat-card__icon.other { color: #ff6b6b; }
+        .stat-card__icon.total { color: var(--color-primary); }
+
+        .stat-card__value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .stat-card__label {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* 차트 영역 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .chart-card h3 {
+            font-size: 1rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-card h3 i {
+            color: var(--color-primary);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* 객체 목록 */
+        .detections-section {
+            margin-top: 2rem;
+        }
+
+        .detections-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .detections-header h3 {
+            font-size: 1.1rem;
+            color: var(--color-text);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-tab {
+            padding: 8px 16px;
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: 0.2s;
+        }
+
+        .filter-tab:hover, .filter-tab.active {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+
+        .detections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .detection-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: 0.2s;
+        }
+
+        .detection-card:hover {
+            border-color: var(--color-primary);
+        }
+
+        .detection-card__image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .detection-card__info {
+            padding: 0.75rem;
+        }
+
+        .detection-card__class {
+            font-weight: 600;
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detection-card__class .cat-badge {
+            background: #ffa500;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .detection-card__class .other-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .detection-card__time {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--color-text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* 고양이 개체 목록 */
+        .cats-section {
+            margin-top: 2rem;
+        }
+
+        .cat-profiles {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem 0;
+        }
+
+        .cat-profile {
+            flex-shrink: 0;
+            width: 120px;
+            text-align: center;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .cat-profile:hover {
+            border-color: #ffa500;
+        }
+
+        .cat-profile__avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 0.5rem;
+            border: 2px solid #ffa500;
+        }
+
+        .cat-profile__name {
+            font-weight: 600;
+            color: var(--color-text);
+            font-size: 0.875rem;
+        }
+
+        .cat-profile__count {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--color-text-muted);
+        }
+
+        .loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="container nav__container">
+            <a href="index.html" class="nav__logo">
+                <img src="images/logo.png" alt="지기술(G-TECH)" class="nav__logo-img">
+            </a>
+            <button class="nav__toggle" id="nav-toggle"><i class="fas fa-bars"></i></button>
+            <div class="nav__menu" id="nav-menu">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="index.html" class="nav__link">홈</a></li>
+                    <li class="nav__item"><a href="vision.html" class="nav__link">비전</a></li>
+                    <li class="nav__item"><a href="technology.html" class="nav__link">SSIRN 기술</a></li>
+                    <li class="nav__item"><a href="products.html" class="nav__link">제품</a></li>
+                    <li class="nav__item"><a href="gallery.html" class="nav__link">연구 갤러리</a></li>
+                    <li class="nav__item"><a href="contact.html" class="nav__link">문의</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero hero--small">
+        <div class="hero__overlay"></div>
+        <div class="container hero__container">
+            <h1 class="hero__title">객체 탐지 대시보드</h1>
+            <p class="hero__subtitle">실시간 모니터링 및 통계</p>
+        </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section class="section">
+        <div class="dashboard-container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <h2><i class="fas fa-chart-line"></i> 탐지 통계</h2>
+                <div class="date-filter">
+                    <input type="date" id="date-from">
+                    <span>~</span>
+                    <input type="date" id="date-to">
+                    <button onclick="loadData()"><i class="fas fa-search"></i> 조회</button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card__icon total"><i class="fas fa-eye"></i></div>
+                    <div class="stat-card__value" id="total-count">-</div>
+                    <div class="stat-card__label">총 탐지</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon cat"><i class="fas fa-cat"></i></div>
+                    <div class="stat-card__value" id="cat-count">-</div>
+                    <div class="stat-card__label">고양이</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon other"><i class="fas fa-question"></i></div>
+                    <div class="stat-card__value" id="other-count">-</div>
+                    <div class="stat-card__label">기타 객체</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card__icon" style="color: #00ff88;"><i class="fas fa-paw"></i></div>
+                    <div class="stat-card__value" id="unique-cats">-</div>
+                    <div class="stat-card__label">고양이 개체</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3><i class="fas fa-clock"></i> 시간대별 출몰</h3>
+                    <div class="chart-container">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3><i class="fas fa-pie-chart"></i> 객체 분류</h3>
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cat Profiles -->
+            <div class="cats-section">
+                <h3 style="color: var(--color-text); margin-bottom: 1rem;">
+                    <i class="fas fa-cat" style="color: #ffa500;"></i> 인식된 고양이
+                </h3>
+                <div class="cat-profiles" id="cat-profiles">
+                    <div class="loading"><i class="fas fa-spinner"></i></div>
+                </div>
+            </div>
+
+            <!-- Detections List -->
+            <div class="detections-section">
+                <div class="detections-header">
+                    <h3><i class="fas fa-images"></i> 탐지 기록</h3>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterDetections('all')">전체</button>
+                        <button class="filter-tab" onclick="filterDetections('cat')">고양이</button>
+                        <button class="filter-tab" onclick="filterDetections('other')">기타 객체</button>
+                    </div>
+                </div>
+                <div class="detections-grid" id="detections-grid">
+                    <div class="loading"><i class="fas fa-spinner"></i></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer__container">
+            <div class="footer__bottom">
+                <p>&copy; 2026 지기술(G-TECH). All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        let hourlyChart = null;
+        let pieChart = null;
+        let allDetections = [];
+        let currentFilter = 'all';
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            // 기본 날짜 설정 (오늘)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date-from').value = today;
+            document.getElementById('date-to').value = today;
+
+            loadData();
+        });
+
+        async function loadData() {
+            const fromDate = document.getElementById('date-from').value;
+            const toDate = document.getElementById('date-to').value;
+
+            // 통계 로드
+            await loadStats(fromDate, toDate);
+
+            // 탐지 기록 로드
+            await loadDetections(fromDate, toDate);
+
+            // 고양이 프로필 로드
+            await loadCatProfiles(fromDate, toDate);
+        }
+
+        async function loadStats(fromDate, toDate) {
+            try {
+                const response = await fetch(`/api/dashboard/stats?from=${fromDate}&to=${toDate}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('total-count').textContent = data.total || 0;
+                    document.getElementById('cat-count').textContent = data.cats || 0;
+                    document.getElementById('other-count').textContent = data.others || 0;
+                    document.getElementById('unique-cats').textContent = data.uniqueCats || 0;
+
+                    // 시간대별 차트
+                    updateHourlyChart(data.hourly || Array(24).fill(0));
+
+                    // 파이 차트
+                    updatePieChart(data.cats || 0, data.others || 0);
+                }
+            } catch (e) {
+                console.error('Stats load error:', e);
+            }
+        }
+
+        async function loadDetections(fromDate, toDate) {
+            const grid = document.getElementById('detections-grid');
+            grid.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i></div>';
+
+            try {
+                const response = await fetch(`/api/dashboard/detections?from=${fromDate}&to=${toDate}&limit=50`);
+                const data = await response.json();
+
+                if (data.success) {
+                    allDetections = data.detections || [];
+                    renderDetections();
+                } else {
+                    grid.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>탐지 기록이 없습니다</p></div>';
+                }
+            } catch (e) {
+                grid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>데이터 로드 실패</p></div>';
+            }
+        }
+
+        async function loadCatProfiles(fromDate, toDate) {
+            const container = document.getElementById('cat-profiles');
+
+            try {
+                const response = await fetch(`/api/dashboard/cats?from=${fromDate}&to=${toDate}`);
+                const data = await response.json();
+
+                if (data.success && data.cats && data.cats.length > 0) {
+                    container.innerHTML = data.cats.map(cat => `
+                        <div class="cat-profile" onclick="filterByCat('${cat.id}')">
+                            <img src="${cat.thumbnail || '/images/logo.png'}" alt="${cat.id}" class="cat-profile__avatar">
+                            <div class="cat-profile__name">${cat.name || cat.id}</div>
+                            <div class="cat-profile__count">${cat.count}회 출몰</div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="empty-state" style="padding: 1rem;"><p>인식된 고양이가 없습니다</p></div>';
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="empty-state" style="padding: 1rem;"><p>데이터 없음</p></div>';
+            }
+        }
+
+        function renderDetections() {
+            const grid = document.getElementById('detections-grid');
+            let filtered = allDetections;
+
+            if (currentFilter === 'cat') {
+                filtered = allDetections.filter(d => d.is_cat);
+            } else if (currentFilter === 'other') {
+                filtered = allDetections.filter(d => !d.is_cat);
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>탐지 기록이 없습니다</p>
+                        <p style="font-size:0.85rem;margin-top:0.5rem;">
+                            <a href="/admin" style="color:var(--color-primary);">관리자 페이지</a>에서 객체 분석을 실행해주세요
+                        </p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(d => `
+                <div class="detection-card">
+                    <img src="/api/feed/image/${d.date}/${d.image}" alt="${d.class}" class="detection-card__image">
+                    <div class="detection-card__info">
+                        <div class="detection-card__class">
+                            ${d.class}
+                            ${d.is_cat ? `<span class="cat-badge">${d.cat_id || '고양이'}</span>` : '<span class="other-badge">기타</span>'}
+                        </div>
+                        <div class="detection-card__time">
+                            ${d.date} ${d.time} · ${Math.round(d.confidence * 100)}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterDetections(filter) {
+            currentFilter = filter;
+
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            renderDetections();
+        }
+
+        function filterByCat(catId) {
+            // 특정 고양이 필터
+            const filtered = allDetections.filter(d => d.cat_id === catId);
+            // TODO: 모달이나 별도 뷰로 표시
+            alert(`${catId} 탐지 기록: ${filtered.length}건`);
+        }
+
+        function updateHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+
+            if (hourlyChart) {
+                hourlyChart.destroy();
+            }
+
+            hourlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
+                    datasets: [{
+                        label: '출몰 횟수',
+                        data: data,
+                        backgroundColor: 'rgba(0, 102, 255, 0.6)',
+                        borderColor: 'rgba(0, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#a0aec0' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#a0aec0' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updatePieChart(cats, others) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            pieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['고양이', '기타 객체'],
+                    datasets: [{
+                        data: [cats, others],
+                        backgroundColor: ['#ffa500', '#ff6b6b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#a0aec0' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
