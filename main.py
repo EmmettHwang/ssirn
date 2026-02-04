@@ -959,8 +959,8 @@ def analyze_video_task(camera: str, date: str, task_id: str):
             analyzed += 1
             task_manager.update_task(task_id, progress=analyzed, current_item=f"프레임 {frame_num}")
 
-            # YOLO 탐지
-            results = model(frame, verbose=False)
+            # YOLO 탐지 (신뢰도 임계값 낮춤)
+            results = model(frame, verbose=False, conf=0.15)
 
             for r in results:
                 for box in r.boxes:
@@ -968,7 +968,7 @@ def analyze_video_task(camera: str, date: str, task_id: str):
                     cls_name = model.names[cls_id]
                     conf = float(box.conf[0])
 
-                    if cls_name in detections_count and conf > 0.5:
+                    if cls_name in detections_count:
                         detections_count[cls_name] += 1
 
                         # DB에 저장

@@ -411,17 +411,46 @@
         }
 
         .task-item__progress {
-            height: 6px;
+            height: 20px;
             background: var(--color-border);
-            border-radius: 3px;
+            border-radius: 10px;
             overflow: hidden;
             margin-bottom: 0.5rem;
+            position: relative;
         }
 
         .task-item__progress-bar {
             height: 100%;
-            background: var(--color-primary);
+            background: linear-gradient(90deg, var(--color-primary), #00ccff);
             transition: width 0.3s;
+            position: relative;
+        }
+
+        .task-item__progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .task-item__progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
 
         .task-item__info {
@@ -2192,6 +2221,7 @@
                                 ${task.status === 'running' ? `
                                     <div class="task-item__progress">
                                         <div class="task-item__progress-bar" style="width: ${progress}%"></div>
+                                        <span class="task-item__progress-text">${progress}%</span>
                                     </div>
                                 ` : ''}
                                 <div class="task-item__info">
@@ -2210,10 +2240,42 @@
                     }).join('');
                 }
 
-                // 내용이 변경된 경우에만 업데이트 (깜빡임 방지)
-                if (newHtml !== lastTasksHtml) {
-                    document.getElementById('task-panel-body').innerHTML = newHtml;
+                // 깜빡임 방지: 개별 요소만 업데이트
+                const panelBody = document.getElementById('task-panel-body');
+                const existingTasks = panelBody.querySelectorAll('.task-item');
+
+                // 작업이 없을 때
+                if (recent.length === 0 && !panelBody.querySelector('.task-empty')) {
+                    panelBody.innerHTML = newHtml;
                     lastTasksHtml = newHtml;
+                }
+                // 작업 수가 변경되었을 때만 전체 업데이트
+                else if (existingTasks.length !== recent.length) {
+                    panelBody.innerHTML = newHtml;
+                    lastTasksHtml = newHtml;
+                }
+                // 개별 작업 상태만 업데이트 (깜빡임 방지)
+                else {
+                    recent.forEach((task, idx) => {
+                        const taskEl = existingTasks[idx];
+                        if (taskEl) {
+                            // 상태 업데이트
+                            const statusEl = taskEl.querySelector('.task-item__status');
+                            if (statusEl) {
+                                statusEl.className = `task-item__status ${task.status}`;
+                                statusEl.textContent = getStatusText(task.status);
+                            }
+                            // 진행률 업데이트
+                            const progress = task.total > 0 ? Math.round((task.progress / task.total) * 100) : 0;
+                            const progressBar = taskEl.querySelector('.task-item__progress-bar');
+                            if (progressBar) progressBar.style.width = progress + '%';
+                            // 정보 업데이트
+                            const infoEl = taskEl.querySelector('.task-item__info');
+                            if (infoEl) {
+                                infoEl.innerHTML = `<span>${task.current_item || ''}</span><span>${task.progress}/${task.total} (${progress}%)</span>`;
+                            }
+                        }
+                    });
                 }
 
             } catch (e) {

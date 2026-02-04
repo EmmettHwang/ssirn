@@ -88,9 +88,9 @@ def analyze_image(image_data, filename, max_size=416):
         new_size = (int(img.width * ratio), int(img.height * ratio))
         img = img.resize(new_size, Image.LANCZOS)
 
-    # YOLO 탐지
+    # YOLO 탐지 (신뢰도 임계값 낮춤 - 작은 객체도 감지)
     model = load_model()
-    results = model(img, verbose=False)
+    results = model(img, verbose=False, conf=0.15)
 
     detections = []
     for r in results:
