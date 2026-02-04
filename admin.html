@@ -1200,10 +1200,11 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="nav" id="nav">
+    <nav class="nav" id="nav" style="position: relative;">
         <div class="container nav__container">
-            <a href="index.html" class="nav__logo">
+            <a href="index.html" class="nav__logo" style="display: flex; align-items: center; gap: 1rem;">
                 <img src="images/logo.png" alt="지기술(G-TECH)" class="nav__logo-img">
+                <span style="font-size: 1.2rem; font-weight: 600; color: var(--color-text);">관리자 패널</span>
             </a>
             <div class="nav__menu" id="nav-menu">
                 <ul class="nav__list">
@@ -1214,16 +1215,7 @@
         </div>
     </nav>
 
-    <!-- Hero -->
-    <section class="hero hero--small">
-        <div class="hero__overlay"></div>
-        <div class="container hero__container">
-            <h1 class="hero__title">관리자</h1>
-            <p class="hero__subtitle">시스템 설정 및 관리</p>
-        </div>
-    </section>
-
-    <section class="section">
+    <section class="section" style="padding-top: 100px;">
         <div class="admin-container">
             <!-- 로그인 폼 -->
             <div class="login-container" id="login-form">
