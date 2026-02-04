@@ -862,22 +862,151 @@ async def get_cat_profiles(from_date: str = None, to_date: str = None):
 
 
 @app.post("/api/analyze/{date}")
-async def analyze_date(date: str, background_tasks: BackgroundTasks, request: Request):
-    """특정 날짜 이미지 분석 (관리자 전용)"""
+async def analyze_date(date: str, background_tasks: BackgroundTasks, request: Request, camera: str = "feed"):
+    """특정 날짜 동영상 분석 (관리자 전용)"""
     # 인증 확인
     token = request.cookies.get("auth_token")
     if not token or not verify_token(token):
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    # 백그라운드에서 분석 실행
-    import subprocess
-    background_tasks.add_task(
-        subprocess.run,
-        ["python3", str(BASE_DIR / "analyzer.py"), date],
-        capture_output=True
-    )
+    # 동영상 존재 여부 확인
+    video_path = get_video_path(camera)
+    try:
+        ftp = get_ftp_connection()
+        ftp.cwd(video_path)
+        files = ftp.nlst()
+        ftp.quit()
+        if f"{date}.mp4" not in files:
+            return {"success": False, "error": f"동영상이 없습니다: {date}.mp4"}
+    except:
+        return {"success": False, "error": "FTP 연결 실패"}
 
-    return {"success": True, "message": f"Analyzing {date} in background"}
+    # TaskManager로 작업 생성
+    task_id = task_manager.create_task("분석", f"{camera}/{date} 동영상 분석")
+
+    # 백그라운드에서 분석 실행
+    background_tasks.add_task(analyze_video_task, camera, date, task_id)
+
+    return {"success": True, "message": f"Analyzing video {camera}/{date}", "task_id": task_id}
+
+
+def analyze_video_task(camera: str, date: str, task_id: str):
+    """동영상 분석 백그라운드 작업"""
+    import cv2
+    import numpy as np
+
+    work_dir = None
+    try:
+        task_manager.add_log(task_id, "동영상 다운로드 시작")
+
+        # 임시 디렉토리
+        TEMP_DIR.mkdir(parents=True, exist_ok=True)
+        work_dir = TEMP_DIR / f"analyze_{camera}_{date}"
+        work_dir.mkdir(exist_ok=True)
+
+        # FTP에서 동영상 다운로드
+        video_path = get_video_path(camera)
+        ftp = get_ftp_connection()
+        local_video = work_dir / f"{date}.mp4"
+
+        with open(local_video, 'wb') as f:
+            ftp.retrbinary(f"RETR {video_path}/{date}.mp4", f.write)
+        ftp.quit()
+
+        task_manager.add_log(task_id, "동영상 다운로드 완료, 프레임 추출 시작")
+
+        # 동영상 열기
+        cap = cv2.VideoCapture(str(local_video))
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = cap.get(cv2.CAP_PROP_FPS) or 30
+
+        # 1초당 1프레임만 분석 (효율성)
+        frame_interval = max(1, int(fps))
+        frames_to_analyze = total_frames // frame_interval
+
+        task_manager.update_task(task_id, total=frames_to_analyze)
+        task_manager.add_log(task_id, f"총 {frames_to_analyze}개 프레임 분석 예정")
+
+        # YOLO 모델 로드
+        from ultralytics import YOLO
+        model = YOLO(str(BASE_DIR / 'yolov8n.pt'))
+
+        # DB 연결
+        import mysql.connector
+        db = mysql.connector.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', 3306)),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME', 'ssirn')
+        )
+
+        analyzed = 0
+        detections_count = {'cat': 0, 'dog': 0, 'person': 0, 'car': 0}
+        frame_num = 0
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            frame_num += 1
+
+            # frame_interval 마다 분석
+            if frame_num % frame_interval != 0:
+                continue
+
+            analyzed += 1
+            task_manager.update_task(task_id, progress=analyzed, current_item=f"프레임 {frame_num}")
+
+            # YOLO 탐지
+            results = model(frame, verbose=False)
+
+            for r in results:
+                for box in r.boxes:
+                    cls_id = int(box.cls[0])
+                    cls_name = model.names[cls_id]
+                    conf = float(box.conf[0])
+
+                    if cls_name in detections_count and conf > 0.5:
+                        detections_count[cls_name] += 1
+
+                        # DB에 저장
+                        cursor = db.cursor()
+                        # 프레임 시간 계산
+                        frame_time = frame_num / fps
+                        hours = int(frame_time // 3600)
+                        mins = int((frame_time % 3600) // 60)
+                        secs = int(frame_time % 60)
+                        time_str = f"{hours:02d}:{mins:02d}:{secs:02d}"
+
+                        cursor.execute("""
+                            INSERT INTO detections (image_name, image_date, image_time, object_class, confidence, is_cat)
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                        """, (f"frame_{frame_num}.jpg", date[:4]+'-'+date[4:6]+'-'+date[6:8], time_str, cls_name, conf, cls_name=='cat'))
+                        db.commit()
+                        cursor.close()
+
+            # 10프레임마다 로그
+            if analyzed % 10 == 0:
+                task_manager.add_log(task_id, f"{analyzed}/{frames_to_analyze} 분석 완료")
+
+        cap.release()
+        db.close()
+
+        # 완료
+        total_detections = sum(detections_count.values())
+        task_manager.update_task(task_id, status='completed', progress=frames_to_analyze)
+        task_manager.add_log(task_id, f"완료! 탐지: 고양이 {detections_count['cat']}, 개 {detections_count['dog']}, 사람 {detections_count['person']}, 차 {detections_count['car']}")
+
+    except Exception as e:
+        task_manager.update_task(task_id, status='failed')
+        task_manager.add_log(task_id, f"오류: {str(e)}")
+        print(f"Analyze error: {e}")
+
+    finally:
+        if work_dir and work_dir.exists():
+            shutil.rmtree(work_dir, ignore_errors=True)
 
 
 # ==================== 타임랩스 설정 API ====================
@@ -1219,24 +1348,59 @@ async def get_system_status():
             disk_free = parts[3]
             disk_percent = int(parts[4].replace('%', ''))
 
-        # 실행 중인 서비스 (웹앱/서버)
+        # 웹앱 서비스 상태 (8000, 8001, 8002 포트)
+        webapp_ports = [
+            {"port": 8000, "name": "miniLMS"},
+            {"port": 8001, "name": "원주산삼"},
+            {"port": 8002, "name": "SSIRN"}
+        ]
         services = []
-        ps_result = subprocess.run(
-            ["ps", "aux"],
-            capture_output=True, text=True, timeout=5
-        )
-        for line in ps_result.stdout.split('\n'):
-            line_lower = line.lower()
-            # uvicorn, gunicorn, nginx, node, python 웹서버 등
-            if any(s in line_lower for s in ['uvicorn', 'gunicorn', 'nginx', 'node ', 'flask', 'django', 'fastapi']):
-                parts = line.split()
-                if len(parts) >= 11:
-                    services.append({
-                        "pid": parts[1],
-                        "cpu": parts[2],
-                        "mem": parts[3],
-                        "cmd": ' '.join(parts[10:])[:60]
-                    })
+
+        for wp in webapp_ports:
+            port = wp["port"]
+            service = {
+                "port": port,
+                "name": wp["name"],
+                "status": "down",
+                "pid": None,
+                "cpu": "0",
+                "mem": "0",
+                "connections": 0
+            }
+
+            # 포트 사용 중인 프로세스 확인
+            try:
+                lsof_result = subprocess.run(
+                    ["lsof", "-i", f":{port}", "-t"],
+                    capture_output=True, text=True, timeout=3
+                )
+                pids = lsof_result.stdout.strip().split('\n')
+                if pids and pids[0]:
+                    service["status"] = "running"
+                    service["pid"] = pids[0]
+
+                    # CPU/메모리 사용량
+                    ps_result = subprocess.run(
+                        ["ps", "-p", pids[0], "-o", "%cpu,%mem", "--no-headers"],
+                        capture_output=True, text=True, timeout=3
+                    )
+                    if ps_result.stdout.strip():
+                        parts = ps_result.stdout.strip().split()
+                        if len(parts) >= 2:
+                            service["cpu"] = parts[0]
+                            service["mem"] = parts[1]
+
+                    # 연결 수 (트래픽 지표)
+                    netstat_result = subprocess.run(
+                        ["ss", "-tn", f"sport = :{port}"],
+                        capture_output=True, text=True, timeout=3
+                    )
+                    connections = len([l for l in netstat_result.stdout.split('\n') if 'ESTAB' in l])
+                    service["connections"] = connections
+            except:
+                pass
+
+            services.append(service)
 
         return {
             "success": True,

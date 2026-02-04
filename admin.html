@@ -530,39 +530,167 @@
             margin-top: 0.15rem;
         }
 
-        .services-list {
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
-        .service-item {
+        /* 웹앱 서비스 그리드 */
+        .webapp-grid {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.35rem 0.5rem;
-            background: var(--color-bg-light);
-            border-radius: 4px;
-            margin-bottom: 0.25rem;
-            font-size: 0.7rem;
-        }
-
-        .service-item__name {
-            color: var(--color-text);
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .service-item__stats {
-            display: flex;
+            flex-direction: column;
             gap: 0.5rem;
+        }
+
+        .webapp-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .webapp-card.running {
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .webapp-card.down {
+            border-color: rgba(255, 68, 68, 0.3);
+            opacity: 0.7;
+        }
+
+        .webapp-card__indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .webapp-card__indicator.running {
+            background: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        .webapp-card__indicator.down {
+            background: #ff4444;
+        }
+
+        .webapp-card__indicator.busy {
+            background: #ffa500;
+            box-shadow: 0 0 8px rgba(255, 165, 0, 0.6);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .webapp-card__info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .webapp-card__name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .webapp-card__port {
+            font-size: 0.65rem;
             color: var(--color-text-muted);
         }
 
-        .service-item__stat {
-            min-width: 35px;
-            text-align: right;
+        .webapp-card__stats {
+            display: flex;
+            gap: 0.5rem;
+            font-size: 0.65rem;
+        }
+
+        .webapp-card__stat {
+            text-align: center;
+            min-width: 32px;
+        }
+
+        .webapp-card__stat-value {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .webapp-card__stat-label {
+            color: var(--color-text-muted);
+            font-size: 0.55rem;
+        }
+
+        .webapp-card__status {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .webapp-card__status.running {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .webapp-card__status.down {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff6b6b;
+        }
+
+        .webapp-card__status.busy {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+
+        /* 완료 토스트 알림 */
+        .completion-toast {
+            position: fixed;
+            top: 80px;
+            right: 520px;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 500;
+            z-index: 2000;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .completion-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .completion-toast i {
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 1400px) {
+            .completion-toast { right: 420px; }
+        }
+
+        @media (max-width: 1100px) {
+            .completion-toast { right: 340px; }
+        }
+
+        @media (max-width: 900px) {
+            .completion-toast {
+                right: 50%;
+                transform: translateX(50%) translateY(-100px);
+                top: auto;
+                bottom: 270px;
+            }
+            .completion-toast.show {
+                transform: translateX(50%) translateY(0);
+            }
         }
 
         @media (max-width: 1400px) {
@@ -1160,13 +1288,15 @@
                 <!-- 객체 분석 탭 -->
                 <div class="tab-content" id="tab-analyze">
                     <div class="admin-card">
-                        <h3><i class="fas fa-brain"></i> YOLOv8 객체 분석</h3>
+                        <h3><i class="fas fa-brain"></i> YOLOv8 동영상 분석</h3>
                         <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
-                            FTP 서버의 이미지를 분석하여 고양이, 개, 사람, 자동차 등을 탐지하고 결과를 대시보드에 저장합니다.
+                            <i class="fas fa-video" style="color:var(--color-primary);"></i>
+                            변환된 동영상을 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
+                            <small>* 1초당 1프레임씩 분석하여 효율적으로 처리됩니다.</small>
                         </p>
                         <div class="form-group">
                             <label>분석 카메라</label>
-                            <select id="analyze-camera">
+                            <select id="analyze-camera" onchange="loadAnalyzeVideos()">
                                 <option value="feed">메인 카메라</option>
                                 <option value="west">서쪽 카메라</option>
                                 <option value="roof">지붕 카메라</option>
@@ -1174,13 +1304,13 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>분석할 날짜</label>
+                            <label>분석할 동영상</label>
                             <select id="analyze-date">
-                                <option value="">날짜 로딩 중...</option>
+                                <option value="">동영상 로딩 중...</option>
                             </select>
                         </div>
                         <button class="convert-btn" id="analyze-btn" onclick="runAnalysis()" style="width:100%;">
-                            <i class="fas fa-play"></i> 분석 실행
+                            <i class="fas fa-play"></i> 동영상 분석 시작
                         </button>
                         <div class="status-message" id="analyze-status"></div>
                     </div>
@@ -1366,7 +1496,7 @@
             renderCameraSelect();
             loadPendingDates();
             loadCompletedVideos();
-            loadAnalyzeDates();
+            loadAnalyzeVideos();
             initDashboard();
             loadGalleryItems();
         }
@@ -1686,11 +1816,16 @@
         }
 
         // ==================== 대시보드 ====================
+        let dashboardRefreshInterval = null;
+
         function initDashboard() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('dash-date-from').value = today;
             document.getElementById('dash-date-to').value = today;
             loadDashboard();
+
+            // 대시보드 자동 새로고침 (10초마다)
+            dashboardRefreshInterval = setInterval(loadDashboard, 10000);
         }
 
         async function loadDashboard() {
@@ -1898,66 +2033,74 @@
         }
 
         // ==================== 객체 분석 ====================
-        async function loadAnalyzeDates() {
+        async function loadAnalyzeVideos() {
             const camera = document.getElementById('analyze-camera').value;
             const select = document.getElementById('analyze-date');
 
+            select.innerHTML = '<option value="">동영상 로딩 중...</option>';
+
             try {
-                const res = await fetch(`/api/feed/dates?camera=${camera}`);
+                const res = await fetch(`/api/feed/videos?camera=${camera}`);
                 const data = await res.json();
 
-                if (data.success && data.dates.length > 0) {
-                    select.innerHTML = data.dates.map(d => {
+                if (data.success && data.videos && data.videos.length > 0) {
+                    select.innerHTML = data.videos.map(d => {
                         const formatted = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
-                        return `<option value="${d}">${formatted}</option>`;
+                        return `<option value="${d}">${formatted} (동영상)</option>`;
                     }).join('');
                 } else {
-                    select.innerHTML = '<option value="">날짜 없음</option>';
+                    select.innerHTML = '<option value="">변환된 동영상 없음</option>';
                 }
             } catch (e) {
                 select.innerHTML = '<option value="">로드 실패</option>';
             }
         }
 
-        // 카메라 변경 시 날짜 목록 갱신
-        document.getElementById('analyze-camera')?.addEventListener('change', loadAnalyzeDates);
+        // 초기 로드
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.getElementById('analyze-camera')) {
+                loadAnalyzeVideos();
+            }
+        });
 
         async function runAnalysis() {
+            const camera = document.getElementById('analyze-camera').value;
             const date = document.getElementById('analyze-date').value;
             const btn = document.getElementById('analyze-btn');
 
             if (!date) {
-                showStatus('analyze-status', '날짜를 선택하세요.', 'error');
+                showStatus('analyze-status', '동영상을 선택하세요.', 'error');
                 return;
             }
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 중...';
-            showStatus('analyze-status', '분석을 시작합니다. 이미지 수에 따라 시간이 걸릴 수 있습니다...', 'info');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 시작 중...';
+            showStatus('analyze-status', '동영상 분석을 시작합니다. 작업 현황 패널에서 진행 상황을 확인하세요.', 'info');
 
             try {
-                const res = await fetch(`/api/analyze/${date}`, {
+                const res = await fetch(`/api/analyze/${date}?camera=${camera}`, {
                     method: 'POST'
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    showStatus('analyze-status', '분석 작업이 백그라운드에서 진행됩니다. 완료 후 대시보드에서 확인하세요.', 'success');
+                    showStatus('analyze-status', `분석 시작! 작업 ID: ${data.task_id}. 우측 패널에서 진행 상황을 확인하세요.`, 'success');
                 } else {
-                    showStatus('analyze-status', data.detail || '분석 실패', 'error');
+                    showStatus('analyze-status', data.error || data.detail || '분석 실패', 'error');
                 }
             } catch (e) {
                 showStatus('analyze-status', '오류: ' + e.message, 'error');
             }
 
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-play"></i> 분석 실행';
+            btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
         }
 
         // ==================== 작업 현황 ====================
         let taskRefreshInterval = null;
         let systemRefreshInterval = null;
         let lastTasksHtml = '';  // 깜빡임 방지용
+        let previousTaskStatus = {};  // 작업 상태 추적용
 
         // 패널이 항상 보이므로 자동 시작
         document.addEventListener('DOMContentLoaded', () => {
@@ -1976,6 +2119,21 @@
 
                 const running = data.running || [];
                 const recent = data.recent || [];
+
+                // 작업 완료 감지 및 자동 새로고침
+                recent.forEach(task => {
+                    const prevStatus = previousTaskStatus[task.id];
+                    const currStatus = task.status;
+
+                    // running에서 completed로 변경된 경우
+                    if (prevStatus === 'running' && currStatus === 'completed') {
+                        console.log(`Task completed: ${task.type} - ${task.description}`);
+                        onTaskCompleted(task);
+                    }
+
+                    // 상태 저장
+                    previousTaskStatus[task.id] = currStatus;
+                });
 
                 // 실행 중인 작업 수 표시
                 const countEl = document.getElementById('task-running-count');
@@ -2038,6 +2196,50 @@
             }
         }
 
+        // 작업 완료 시 자동 새로고침
+        function onTaskCompleted(task) {
+            const type = task.type.toLowerCase();
+
+            // 부드러운 알림
+            showCompletionToast(task);
+
+            // 작업 유형에 따라 관련 섹션 새로고침
+            setTimeout(() => {
+                if (type.includes('convert') || type.includes('video') || type.includes('변환')) {
+                    loadPendingDates();
+                    loadCompletedVideos();
+                }
+                if (type.includes('resize') || type.includes('리사이즈')) {
+                    loadCompletedVideos();
+                }
+                if (type.includes('analyz') || type.includes('분석')) {
+                    loadDashboard();
+                }
+            }, 500);
+        }
+
+        // 완료 토스트 알림
+        function showCompletionToast(task) {
+            // 기존 토스트 제거
+            const existingToast = document.querySelector('.completion-toast');
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'completion-toast';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span><strong>${task.type}</strong> 완료!</span>
+            `;
+            document.body.appendChild(toast);
+
+            // 애니메이션 후 제거
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         function getStatusText(status) {
             switch (status) {
                 case 'running': return '실행 중';
@@ -2077,18 +2279,40 @@
                 document.getElementById('sys-disk-detail').textContent =
                     `${data.disk.used}/${data.disk.total}`;
 
-                // 서비스 목록
+                // 웹앱 서비스 목록
                 const servicesEl = document.getElementById('services-list');
                 if (data.services && data.services.length > 0) {
-                    servicesEl.innerHTML = data.services.map(s => `
-                        <div class="service-item">
-                            <span class="service-item__name" title="${s.cmd}">${s.cmd}</span>
-                            <span class="service-item__stats">
-                                <span class="service-item__stat">${s.cpu}%</span>
-                                <span class="service-item__stat">${s.mem}%</span>
-                            </span>
-                        </div>
-                    `).join('');
+                    servicesEl.innerHTML = data.services.map(s => {
+                        const isRunning = s.status === 'running';
+                        const isBusy = s.connections > 5;
+                        const statusClass = !isRunning ? 'down' : (isBusy ? 'busy' : 'running');
+                        const statusText = !isRunning ? '중지' : (isBusy ? '트래픽 높음' : '정상');
+
+                        return `
+                            <div class="webapp-card ${s.status}">
+                                <div class="webapp-card__indicator ${statusClass}"></div>
+                                <div class="webapp-card__info">
+                                    <div class="webapp-card__name">${s.name}</div>
+                                    <div class="webapp-card__port">:${s.port}</div>
+                                </div>
+                                <div class="webapp-card__stats">
+                                    <div class="webapp-card__stat">
+                                        <div class="webapp-card__stat-value">${s.cpu}%</div>
+                                        <div class="webapp-card__stat-label">CPU</div>
+                                    </div>
+                                    <div class="webapp-card__stat">
+                                        <div class="webapp-card__stat-value">${s.mem}%</div>
+                                        <div class="webapp-card__stat-label">MEM</div>
+                                    </div>
+                                    <div class="webapp-card__stat">
+                                        <div class="webapp-card__stat-value">${s.connections}</div>
+                                        <div class="webapp-card__stat-label">연결</div>
+                                    </div>
+                                </div>
+                                <span class="webapp-card__status ${statusClass}">${statusText}</span>
+                            </div>
+                        `;
+                    }).join('');
                 } else {
                     servicesEl.innerHTML = '<div style="padding:0.5rem;color:var(--color-text-muted);text-align:center;font-size:0.75rem;">서비스 없음</div>';
                 }
@@ -2149,9 +2373,9 @@
                 </div>
             </div>
             <div style="font-size:0.7rem;color:var(--color-text-muted);margin-bottom:0.5rem;">
-                <i class="fas fa-globe"></i> 실행 중인 서비스
+                <i class="fas fa-server"></i> 웹앱 서비스
             </div>
-            <div class="services-list" id="services-list">
+            <div class="webapp-grid" id="services-list">
                 <div style="padding:0.5rem;color:var(--color-text-muted);text-align:center;font-size:0.75rem;">로딩 중...</div>
             </div>
         </div>
