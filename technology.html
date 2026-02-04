@@ -8,6 +8,239 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .vision-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .vision-card h3 {
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .vision-card h3 i {
+            font-size: 1.5rem;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .spec-table th,
+        .spec-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .spec-table th {
+            background: var(--color-bg);
+            color: var(--color-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .spec-table td {
+            color: var(--color-text);
+        }
+
+        .spec-table tr:hover td {
+            background: rgba(0,102,255,0.05);
+        }
+
+        .spec-value {
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: 0.3s;
+        }
+
+        .feature-item:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+        }
+
+        .feature-item__icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--color-primary), #0052cc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-item__title {
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-item__desc {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            line-height: 1.6;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--color-bg);
+            border-radius: 12px;
+        }
+
+        .flow-node {
+            background: linear-gradient(135deg, var(--color-bg-light), var(--color-bg));
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .flow-node i {
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .flow-node span {
+            font-size: 0.8rem;
+            color: var(--color-text);
+        }
+
+        .flow-arrow {
+            color: var(--color-primary);
+            font-size: 1.5rem;
+        }
+
+        .robot-network {
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .robot-network::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0,102,255,0.2) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+        }
+
+        .network-center {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .network-center__icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary), #0052cc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 0 40px rgba(0,102,255,0.5);
+        }
+
+        .network-center__title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .network-center__subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+        }
+
+        .network-nodes {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .network-node {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .network-node i {
+            font-size: 2rem;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .network-node__name {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .network-node__status {
+            font-size: 0.7rem;
+            color: #00ff88;
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .flow-diagram {
+                flex-direction: column;
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
 </head>
 <body>
     <nav class="nav" id="nav">
@@ -30,7 +263,7 @@
         </div>
     </nav>
 
-    <section class="hero hero--video">
+    <section class="hero hero--video" style="min-height: 100vh;">
         <div class="hero__video-bg">
             <iframe
                 src="https://www.youtube.com/embed/hUdjXkW9QDA?autoplay=1&mute=1&loop=1&playlist=hUdjXkW9QDA&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1"
@@ -46,24 +279,224 @@
         </div>
     </section>
 
-    <section class="section">
+    <!-- SSIRN Section -->
+    <section class="section" style="background: var(--color-bg-light);">
         <div class="container">
             <div class="section__header">
-                <h2 class="section__title" data-kr="기술 개요" data-en="Technology Overview">기술 개요</h2>
-                <p class="section__subtitle" data-kr="사회적 맥락을 이해하는 지능형 다중 로봇 네트워크" data-en="Intelligent multi-robot network understanding social context">사회적 맥락을 이해하는 지능형 다중 로봇 네트워크</p>
+                <h2 class="section__title">SSIRN</h2>
+                <p class="section__subtitle" data-kr="Social Signal Interaction Robot Network" data-en="Social Signal Interaction Robot Network">Social Signal Interaction Robot Network</p>
             </div>
-            <div class="grid grid--2">
-                <div>
-                    <h3 class="card__title" data-kr="핵심 혁신" data-en="Core Innovation">핵심 혁신</h3>
-                    <ul class="card__list" style="margin-top: 1rem;">
-                        <li data-kr="사회적 신호 통합: 인간 활동 패턴, 이벤트, 사회적 맥락 수집" data-en="Social signal integration">사회적 신호 통합: 인간 활동 패턴, 이벤트, 사회적 맥락 수집</li>
-                        <li data-kr="MQTT 기반 다중 로봇 협업 시스템" data-en="MQTT-based multi-robot collaboration">MQTT 기반 다중 로봇 협업 시스템</li>
-                        <li data-kr="예측적 AI: YOLOv11 엣지 AI + 중앙 예측 AI 하이브리드" data-en="Predictive AI hybrid">예측적 AI: YOLOv11 엣지 AI + 중앙 예측 AI 하이브리드</li>
-                        <li data-kr="실시간 WebRTC 통신 (145ms 영상, 112ms 제어)" data-en="Real-time WebRTC">실시간 WebRTC 통신 (145ms 영상, 112ms 제어)</li>
-                    </ul>
+
+            <div class="vision-card">
+                <h3><i class="fas fa-network-wired"></i> <span data-kr="사회적 신호와 상호작용이 가능한 로봇 네트워크" data-en="Robot Network with Social Signal Interaction">사회적 신호와 상호작용이 가능한 로봇 네트워크</span></h3>
+                <p style="color: var(--color-text-muted); line-height: 1.8; margin-bottom: 2rem;" data-kr="SSIRN은 4족 보행 로봇 WebRTC-ROS2 시스템을 기반으로, 사회적 맥락을 이해하는 지능형 다중 로봇 네트워크입니다. 기존의 ArUco 마커 인식과 YOLOv11 객체 탐지를 사회적 신호로 확장하고, MQTT 기반 다중 로봇 협업을 통해 보다 효과적인 위험 예측 및 관리 시스템을 구현합니다." data-en="SSIRN is an intelligent multi-robot network based on quadruped walking robot WebRTC-ROS2 system that understands social context.">
+                    SSIRN은 4족 보행 로봇 WebRTC-ROS2 시스템을 기반으로, 사회적 맥락을 이해하는 지능형 다중 로봇 네트워크입니다. 기존의 ArUco 마커 인식과 YOLOv11 객체 탐지를 사회적 신호로 확장하고, MQTT 기반 다중 로봇 협업을 통해 보다 효과적인 위험 예측 및 관리 시스템을 구현합니다.
+                </p>
+
+                <!-- 로봇 네트워크 시각화 -->
+                <div class="robot-network">
+                    <div class="network-center">
+                        <div class="network-center__icon"><i class="fas fa-server"></i></div>
+                        <div class="network-center__title">MQTT Broker</div>
+                        <div class="network-center__subtitle" data-kr="중앙 AI 예측 엔진" data-en="Central AI Prediction Engine">중앙 AI 예측 엔진</div>
+                    </div>
+                    <div class="network-nodes">
+                        <div class="network-node">
+                            <i class="fas fa-robot"></i>
+                            <div class="network-node__name">Robot 1</div>
+                            <div class="network-node__status">ArUco 감지</div>
+                        </div>
+                        <div class="network-node">
+                            <i class="fas fa-robot"></i>
+                            <div class="network-node__name">Robot 2</div>
+                            <div class="network-node__status">인구 밀도 분석</div>
+                        </div>
+                        <div class="network-node">
+                            <i class="fas fa-robot"></i>
+                            <div class="network-node__name">Robot 3</div>
+                            <div class="network-node__status">이상 행동 감지</div>
+                        </div>
+                        <div class="network-node">
+                            <i class="fas fa-robot"></i>
+                            <div class="network-node__name">Robot N</div>
+                            <div class="network-node__status">확장 가능</div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <img src="images/unitree-go2-front.jpg" alt="Unitree GO2 로봇" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.3);">
+            </div>
+
+            <!-- 기술 스펙 테이블 -->
+            <div class="vision-card">
+                <h3><i class="fas fa-cogs"></i> <span data-kr="하드웨어 구성" data-en="Hardware Configuration">하드웨어 구성</span></h3>
+
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th data-kr="구성요소" data-en="Component">구성요소</th>
+                            <th data-kr="사양" data-en="Specification">사양</th>
+                            <th data-kr="용도" data-en="Purpose">용도</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="fas fa-robot" style="color:var(--color-primary);margin-right:0.5rem;"></i> 4족 보행 로봇</td>
+                            <td><span class="spec-value">Unitree GO2 Edu</span> (70×30×40cm, 15kg)</td>
+                            <td data-kr="자율 순찰 플랫폼" data-en="Autonomous Patrol Platform">자율 순찰 플랫폼</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-microchip" style="color:var(--color-primary);margin-right:0.5rem;"></i> 컴퓨팅 모듈</td>
+                            <td><span class="spec-value">NVIDIA Jetson Orin</span> (40-100 TOPS)</td>
+                            <td data-kr="엣지 AI 처리" data-en="Edge AI Processing">엣지 AI 처리</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-broadcast-tower" style="color:var(--color-primary);margin-right:0.5rem;"></i> 4D LiDAR</td>
+                            <td><span class="spec-value">360°~90°</span> 초광각 스캐닝</td>
+                            <td data-kr="3D 환경 인식" data-en="3D Environment Perception">3D 환경 인식</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-camera" style="color:var(--color-primary);margin-right:0.5rem;"></i> RGB 카메라</td>
+                            <td><span class="spec-value">1280×720p, 30fps</span></td>
+                            <td data-kr="객체 탐지 / 스트리밍" data-en="Object Detection / Streaming">객체 탐지 / 스트리밍</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fas fa-cube" style="color:var(--color-primary);margin-right:0.5rem;"></i> Depth 카메라</td>
+                            <td><span class="spec-value">Intel RealSense</span></td>
+                            <td data-kr="깊이 인식 / 장애물 회피" data-en="Depth Perception / Obstacle Avoidance">깊이 인식 / 장애물 회피</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 소프트웨어 스택 -->
+            <div class="vision-card">
+                <h3><i class="fas fa-code"></i> <span data-kr="소프트웨어 스택" data-en="Software Stack">소프트웨어 스택</span></h3>
+
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <div class="feature-item__icon"><i class="fas fa-network-wired"></i></div>
+                        <div class="feature-item__title">ROS2 Humble</div>
+                        <div class="feature-item__desc" data-kr="SLAM/Nav2 기반 자율 네비게이션, 다중 로봇 분산 네트워크" data-en="SLAM/Nav2 autonomous navigation, multi-robot distributed network">SLAM/Nav2 기반 자율 네비게이션, 다중 로봇 분산 네트워크</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-item__icon"><i class="fas fa-video"></i></div>
+                        <div class="feature-item__title">WebRTC</div>
+                        <div class="feature-item__desc" data-kr="저지연 실시간 영상 스트리밍 (145ms), 원격 제어 (112ms)" data-en="Low-latency real-time video streaming (145ms), remote control (112ms)">저지연 실시간 영상 스트리밍 (145ms), 원격 제어 (112ms)</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-item__icon"><i class="fas fa-eye"></i></div>
+                        <div class="feature-item__title">YOLOv11</div>
+                        <div class="feature-item__desc" data-kr="96% 정확도의 실시간 객체 탐지, TensorRT 최적화" data-en="96% accuracy real-time object detection, TensorRT optimized">96% 정확도의 실시간 객체 탐지, TensorRT 최적화</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-item__icon"><i class="fas fa-exchange-alt"></i></div>
+                        <div class="feature-item__title">MQTT</div>
+                        <div class="feature-item__desc" data-kr="다중 로봇 협업을 위한 발행-구독 메시징 (50ms 이하 지연)" data-en="Pub-sub messaging for multi-robot collaboration (<50ms latency)">다중 로봇 협업을 위한 발행-구독 메시징 (50ms 이하 지연)</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-item__icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="feature-item__title">Transformer AI</div>
+                        <div class="feature-item__desc" data-kr="다변량 시계열 예측, 6시간 미래 위험 예측 (85% F1-score)" data-en="Multivariate time series prediction, 6-hour future risk prediction (85% F1)">다변량 시계열 예측, 6시간 미래 위험 예측 (85% F1-score)</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-item__icon"><i class="fab fa-discord"></i></div>
+                        <div class="feature-item__title">Discord Integration</div>
+                        <div class="feature-item__desc" data-kr="실시간 이벤트 알림, 다중 채널 기반 역할 할당" data-en="Real-time event alerts, multi-channel role assignment">실시간 이벤트 알림, 다중 채널 기반 역할 할당</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 사회적 신호 데이터 플로우 -->
+            <div class="vision-card">
+                <h3><i class="fas fa-stream"></i> <span data-kr="사회적 신호 데이터 플로우" data-en="Social Signal Data Flow">사회적 신호 데이터 플로우</span></h3>
+
+                <div class="flow-diagram">
+                    <div class="flow-node">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span data-kr="위치 정보" data-en="Location">위치 정보</span>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <div class="flow-node">
+                        <i class="fas fa-users"></i>
+                        <span data-kr="인구 밀도" data-en="Population">인구 밀도</span>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <div class="flow-node">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span data-kr="이상 행동" data-en="Anomaly">이상 행동</span>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <div class="flow-node">
+                        <i class="fas fa-brain"></i>
+                        <span data-kr="AI 분석" data-en="AI Analysis">AI 분석</span>
+                    </div>
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+                    <div class="flow-node">
+                        <i class="fas fa-shield-alt"></i>
+                        <span data-kr="위험 예측" data-en="Risk Prediction">위험 예측</span>
+                    </div>
+                </div>
+
+                <table class="spec-table" style="margin-top: 2rem;">
+                    <thead>
+                        <tr>
+                            <th data-kr="데이터 유형" data-en="Data Type">데이터 유형</th>
+                            <th data-kr="입력 소스" data-en="Input Source">입력 소스</th>
+                            <th data-kr="처리 결과" data-en="Output">처리 결과</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td data-kr="위치 정보" data-en="Location">위치 정보</td>
+                            <td>ArUco 마커 + GPS</td>
+                            <td data-kr="사회적 공간 맵핑" data-en="Social Space Mapping">사회적 공간 맵핑</td>
+                        </tr>
+                        <tr>
+                            <td data-kr="인원 탐지" data-en="Person Detection">인원 탐지</td>
+                            <td>YOLOv11 'person' 객체</td>
+                            <td data-kr="인구 밀도 및 이동 패턴" data-en="Population Density & Movement">인구 밀도 및 이동 패턴</td>
+                        </tr>
+                        <tr>
+                            <td data-kr="이상 행동" data-en="Anomaly">이상 행동</td>
+                            <td>'fallen_person' 탐지</td>
+                            <td data-kr="응급 상황 알림" data-en="Emergency Alert">응급 상황 알림</td>
+                        </tr>
+                        <tr>
+                            <td data-kr="환경 위험" data-en="Environmental Risk">환경 위험</td>
+                            <td>'fire', 'smoke' 탐지</td>
+                            <td data-kr="재난 상황 대응" data-en="Disaster Response">재난 상황 대응</td>
+                        </tr>
+                        <tr>
+                            <td data-kr="외부 데이터" data-en="External Data">외부 데이터</td>
+                            <td data-kr="일정, SNS, 교통, 기상" data-en="Schedule, SNS, Traffic, Weather">일정, SNS, 교통, 기상</td>
+                            <td data-kr="종합 위험 예측" data-en="Comprehensive Risk Prediction">종합 위험 예측</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 목표 성과 -->
+            <div class="vision-card">
+                <h3><i class="fas fa-bullseye"></i> <span data-kr="목표 성과" data-en="Target Outcomes">목표 성과</span></h3>
+
+                <div class="grid grid--2" style="gap: 2rem; margin-top: 1.5rem;">
+                    <div>
+                        <h4 style="color: var(--color-primary); margin-bottom: 1rem;"><i class="fas fa-microchip"></i> <span data-kr="기술적 목표" data-en="Technical Goals">기술적 목표</span></h4>
+                        <ul style="color: var(--color-text-muted); line-height: 2;">
+                            <li data-kr="다중 로봇 협업: 5-10대 동시 운영" data-en="Multi-robot: 5-10 simultaneous operation">다중 로봇 협업: <strong style="color:#00ff88;">5-10대</strong> 동시 운영</li>
+                            <li data-kr="예측 정확도: 85% (F1-score)" data-en="Prediction accuracy: 85% (F1-score)">예측 정확도: <strong style="color:#00ff88;">85%</strong> (F1-score)</li>
+                            <li data-kr="엣지 AI 응답: 200ms 이내" data-en="Edge AI response: <200ms">엣지 AI 응답: <strong style="color:#00ff88;">200ms</strong> 이내</li>
+                            <li data-kr="네트워크 지연: MQTT 50ms 이내" data-en="Network latency: MQTT <50ms">네트워크 지연: MQTT <strong style="color:#00ff88;">50ms</strong> 이내</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--color-primary); margin-bottom: 1rem;"><i class="fas fa-heart"></i> <span data-kr="사회적 목표" data-en="Social Goals">사회적 목표</span></h4>
+                        <ul style="color: var(--color-text-muted); line-height: 2;">
+                            <li data-kr="선제적 대응: 70% 이상 예측 기반 조치" data-en="Proactive response: >70% prediction-based">선제적 대응: <strong style="color:#00ff88;">70%</strong> 이상 예측 기반 조치</li>
+                            <li data-kr="자원 효율: 30% 이상 불필요 순찰 감소" data-en="Resource efficiency: >30% patrol reduction">자원 효율: <strong style="color:#00ff88;">30%</strong> 이상 불필요 순찰 감소</li>
+                            <li data-kr="사용자 만족도: 4.0/5.0 이상" data-en="User satisfaction: >4.0/5.0">사용자 만족도: <strong style="color:#00ff88;">4.0/5.0</strong> 이상</li>
+                            <li data-kr="공공 안전 향상: 선제적 위험 예방" data-en="Public safety: Proactive risk prevention">공공 안전 향상: 선제적 위험 예방</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,135 +535,28 @@
     <section class="section">
         <div class="container">
             <div class="section__header">
-                <h2 class="section__title" data-kr="하드웨어 플랫폼" data-en="Hardware Platform">하드웨어 플랫폼</h2>
-            </div>
-            <div class="grid grid--3">
-                <div class="card">
-                    <img src="images/unitree-go2-table.jpg" alt="Unitree GO2" style="border-radius: 8px; margin-bottom: 1rem;">
-                    <h3 class="card__title">Unitree GO2</h3>
-                    <p class="card__text" data-kr="4족 보행 로봇 (70×30×40cm, 15kg, 최대 3.7m/s)" data-en="Quadruped robot">4족 보행 로봇<br>70×30×40cm, 15kg<br>최대 3.7m/s</p>
-                </div>
-                <div class="card">
-                    <img src="images/unitree-go2-rear.jpg" alt="센서 패키지" style="border-radius: 8px; margin-bottom: 1rem;">
-                    <h3 class="card__title" data-kr="센서 패키지" data-en="Sensor Package">센서 패키지</h3>
-                    <p class="card__text" data-kr="4D LiDAR, RGB/Depth 카메라, IMU, 압력 센서" data-en="4D LiDAR, cameras, IMU">4D LiDAR<br>RGB/Depth 카메라<br>IMU, 압력 센서</p>
-                </div>
-                <div class="card">
-                    <img src="images/tablet-monitoring.jpg" alt="모니터링 시스템" style="border-radius: 8px; margin-bottom: 1rem;">
-                    <h3 class="card__title" data-kr="모니터링 시스템" data-en="Monitoring">모니터링 시스템</h3>
-                    <p class="card__text" data-kr="실시간 멀티뷰 모니터링 및 제어" data-en="Real-time multi-view">실시간 멀티뷰<br>모니터링 및 제어</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Robot Dog Demo Section -->
-    <section class="section section--video">
-        <div class="container">
-            <div class="section__header">
-                <h2 class="section__title" data-kr="로봇개 시연" data-en="Robot Dog Demo">로봇개 시연</h2>
-                <p class="section__subtitle" data-kr="Unitree GO2 4족 보행 로봇의 실제 동작" data-en="Unitree GO2 quadruped robot in action">Unitree GO2 4족 보행 로봇의 실제 동작</p>
-            </div>
-            <div class="video-container" style="max-width: 800px; margin: 0 auto;">
-                <iframe 
-                    width="100%" 
-                    height="500" 
-                    src="https://www.youtube.com/embed/Bx0JJo9qN7I?mute=1" 
-                    title="로봇개 시연"
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen
-                    class="video-player">
-                </iframe>
-            </div>
-        </div>
-    </section>
-
-    <section class="section section--video">
-        <div class="container">
-            <div class="section__header">
-                <h2 class="section__title" data-kr="기술 시연 영상" data-en="Technology Demo">기술 시연 영상</h2>
-            </div>
-            <div class="grid grid--2" style="gap: 2rem;">
-                <div>
-                    <h3 class="card__title" data-kr="휴머노이드 로봇 시스템" data-en="Humanoid Robot System">휴머노이드 로봇 시스템</h3>
-                    <div class="video-container" style="margin-top: 1rem;">
-                        <iframe 
-                            width="100%" 
-                            height="500" 
-                            src="https://www.youtube.com/embed/jHZjuMbpy9w?mute=1" 
-                            title="휴머노이드 로봇 시스템"
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen
-                            class="video-player">
-                        </iframe>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="card__title" data-kr="로봇 상호작용 및 제어" data-en="Robot Interaction">로봇 상호작용 및 제어</h3>
-                    <div class="video-container" style="margin-top: 1rem;">
-                        <iframe 
-                            width="100%" 
-                            height="500" 
-                            src="https://www.youtube.com/embed/_3mE0nSpixs?mute=1" 
-                            title="로봇 상호작용 및 제어"
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                            allowfullscreen
-                            class="video-player">
-                        </iframe>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="section__header">
                 <h2 class="section__title" data-kr="4계층 아키텍처" data-en="4-Layer Architecture">4계층 아키텍처</h2>
             </div>
-            <div class="tech-grid">
-                <div class="tech-card">
-                    <div class="tech-card__header">
-                        <i class="fas fa-desktop tech-card__icon"></i>
-                        <h3 class="tech-card__title" data-kr="응용 계층" data-en="Application">응용 계층</h3>
-                    </div>
-                    <p class="tech-card__subtitle" data-kr="대시보드 & 모니터링" data-en="Dashboard & Monitoring">대시보드 & 모니터링</p>
-                    <ul class="tech-card__list">
-                        <li>WebRTC + Discord</li>
-                    </ul>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+                <div style="background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <i class="fas fa-desktop" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                    <h3 style="font-size: 0.9rem; margin-bottom: 0.25rem;" data-kr="응용 계층" data-en="Application">응용 계층</h3>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">WebRTC + Discord</p>
                 </div>
-                <div class="tech-card">
-                    <div class="tech-card__header">
-                        <i class="fas fa-brain tech-card__icon"></i>
-                        <h3 class="tech-card__title" data-kr="사회 신호 처리" data-en="Social Signal">사회 신호 처리</h3>
-                    </div>
-                    <p class="tech-card__subtitle" data-kr="중앙 AI 예측 엔진" data-en="Central AI Engine">중앙 AI 예측 엔진</p>
-                    <ul class="tech-card__list">
-                        <li data-kr="Transformer 시계열 예측" data-en="Transformer prediction">Transformer 시계열 예측</li>
-                    </ul>
+                <div style="background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <i class="fas fa-brain" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                    <h3 style="font-size: 0.9rem; margin-bottom: 0.25rem;" data-kr="사회 신호 처리" data-en="Social Signal">사회 신호 처리</h3>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">Transformer AI</p>
                 </div>
-                <div class="tech-card">
-                    <div class="tech-card__header">
-                        <i class="fas fa-network-wired tech-card__icon"></i>
-                        <h3 class="tech-card__title" data-kr="다중 로봇 조정" data-en="Multi-Robot">다중 로봇 조정</h3>
-                    </div>
-                    <p class="tech-card__subtitle">MQTT</p>
-                    <ul class="tech-card__list">
-                        <li data-kr="5-10대 로봇 협업" data-en="5-10 robot collaboration">5-10대 로봇 협업</li>
-                    </ul>
+                <div style="background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <i class="fas fa-network-wired" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                    <h3 style="font-size: 0.9rem; margin-bottom: 0.25rem;" data-kr="다중 로봇 조정" data-en="Multi-Robot">다중 로봇 조정</h3>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">MQTT 협업</p>
                 </div>
-                <div class="tech-card">
-                    <div class="tech-card__header">
-                        <i class="fas fa-microchip tech-card__icon"></i>
-                        <h3 class="tech-card__title" data-kr="엣지 AI" data-en="Edge AI">엣지 AI</h3>
-                    </div>
-                    <p class="tech-card__subtitle" data-kr="로봇 레벨 처리" data-en="Robot-level">로봇 레벨 처리</p>
-                    <ul class="tech-card__list">
-                        <li>YOLOv11 + ArUco</li>
-                    </ul>
+                <div style="background: var(--color-bg-light); border: 1px solid var(--color-border); border-radius: 12px; padding: 1rem; text-align: center;">
+                    <i class="fas fa-microchip" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                    <h3 style="font-size: 0.9rem; margin-bottom: 0.25rem;" data-kr="엣지 AI" data-en="Edge AI">엣지 AI</h3>
+                    <p style="font-size: 0.75rem; color: var(--color-text-muted);">YOLOv11 + ArUco</p>
                 </div>
             </div>
         </div>
