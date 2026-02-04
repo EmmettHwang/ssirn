@@ -1196,9 +1196,101 @@
             color: var(--color-text-muted);
             font-size: 0.85rem;
         }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-box {
+            background: var(--color-bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--color-border);
+        }
+        .modal-overlay.show .modal-box {
+            transform: scale(1) translateY(0);
+        }
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+        }
+        .modal-icon.success { background: rgba(0, 255, 136, 0.15); color: #00ff88; }
+        .modal-icon.error { background: rgba(255, 68, 68, 0.15); color: #ff4444; }
+        .modal-icon.warning { background: rgba(255, 165, 0, 0.15); color: #ffa500; }
+        .modal-icon.info { background: rgba(0, 102, 255, 0.15); color: #0066ff; }
+        .modal-title {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--color-text);
+        }
+        .modal-message {
+            text-align: center;
+            color: var(--color-text-muted);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+        .modal-btn {
+            display: block;
+            width: 100%;
+            padding: 0.875rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modal-btn.primary {
+            background: var(--color-primary);
+            color: #fff;
+        }
+        .modal-btn.primary:hover {
+            background: #0055dd;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
+    <!-- 모달 -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-icon" id="modal-icon"><i class="fas fa-info-circle"></i></div>
+            <div class="modal-title" id="modal-title">알림</div>
+            <div class="modal-message" id="modal-message">메시지</div>
+            <button class="modal-btn primary" onclick="closeModal()">확인</button>
+        </div>
+    </div>
     <!-- Navigation -->
     <nav class="nav" id="nav" style="position: relative;">
         <div class="container nav__container">
@@ -1359,6 +1451,33 @@
                             <i class="fas fa-play"></i> 동영상 분석 시작
                         </button>
                         <div class="status-message" id="analyze-status"></div>
+
+                        <!-- 분석 진행 상황 GUI -->
+                        <div id="analyze-progress-container" style="display:none; margin-top:1rem; padding:1rem; background:var(--color-bg-light); border-radius:8px; border:1px solid var(--color-border);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <span id="analyze-progress-title" style="font-weight:600; color:var(--color-primary);">
+                                    <i class="fas fa-spinner fa-spin"></i> 분석 진행 중...
+                                </span>
+                                <span id="analyze-progress-percent" style="font-size:0.9rem; color:var(--color-text-muted);">0%</span>
+                            </div>
+                            <div style="height:20px; background:var(--color-bg-dark); border-radius:10px; overflow:hidden; position:relative;">
+                                <div id="analyze-progress-bar" style="height:100%; width:0%; background:linear-gradient(90deg, #0066ff, #00aaff); transition:width 0.3s ease; position:relative;">
+                                    <div style="position:absolute; top:0; left:0; right:0; bottom:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation:shimmer 1.5s infinite;"></div>
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.85rem; color:var(--color-text-muted);">
+                                <span id="analyze-progress-current">현재: -</span>
+                                <span id="analyze-progress-count">0 / 0 프레임</span>
+                            </div>
+                            <div id="analyze-progress-stats" style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--color-border); display:none;">
+                                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.5rem; text-align:center;">
+                                    <div><i class="fas fa-cat" style="color:#ff6b6b;"></i> <span id="analyze-cat-count">0</span></div>
+                                    <div><i class="fas fa-dog" style="color:#ffa500;"></i> <span id="analyze-dog-count">0</span></div>
+                                    <div><i class="fas fa-user" style="color:#4ecdc4;"></i> <span id="analyze-person-count">0</span></div>
+                                    <div><i class="fas fa-car" style="color:#a29bfe;"></i> <span id="analyze-car-count">0</span></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 대시보드 섹션 -->
@@ -1861,6 +1980,45 @@
             el.className = 'status-message ' + type;
         }
 
+        // 모달 표시
+        function showModal(message, type = 'info', title = null) {
+            const overlay = document.getElementById('modal-overlay');
+            const iconEl = document.getElementById('modal-icon');
+            const titleEl = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-message');
+
+            // 타입별 아이콘 및 제목
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            const titles = {
+                success: '성공',
+                error: '오류',
+                warning: '경고',
+                info: '알림'
+            };
+
+            iconEl.className = `modal-icon ${type}`;
+            iconEl.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i>`;
+            titleEl.textContent = title || titles[type] || '알림';
+            msgEl.textContent = message;
+
+            overlay.classList.add('show');
+        }
+
+        function closeModal(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
         // ==================== 대시보드 ====================
         let dashboardRefreshInterval = null;
 
@@ -2058,7 +2216,7 @@
                 await loadGalleryItems();
                 closeGalleryModal();
             } catch (e) {
-                alert('저장 실패: ' + e.message);
+                showModal('저장 실패: ' + e.message, 'error');
             }
         }
 
@@ -2073,7 +2231,7 @@
                     await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
                     await loadGalleryItems();
                 } catch (e) {
-                    alert('삭제 실패: ' + e.message);
+                    showModal('삭제 실패: ' + e.message, 'error');
                 }
             }
         }
@@ -2109,10 +2267,14 @@
             }
         });
 
+        let currentAnalyzeTaskId = null;
+        let analyzeProgressInterval = null;
+
         async function runAnalysis() {
             const camera = document.getElementById('analyze-camera').value;
             const date = document.getElementById('analyze-date').value;
             const btn = document.getElementById('analyze-btn');
+            const progressContainer = document.getElementById('analyze-progress-container');
 
             if (!date) {
                 showStatus('analyze-status', '동영상을 선택하세요.', 'error');
@@ -2121,7 +2283,16 @@
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 시작 중...';
-            showStatus('analyze-status', '동영상 분석을 시작합니다. 작업 현황 패널에서 진행 상황을 확인하세요.', 'info');
+            showStatus('analyze-status', '동영상 분석을 시작합니다...', 'info');
+
+            // 진행 상황 GUI 초기화 및 표시
+            progressContainer.style.display = 'block';
+            document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 진행 중...';
+            document.getElementById('analyze-progress-percent').textContent = '0%';
+            document.getElementById('analyze-progress-bar').style.width = '0%';
+            document.getElementById('analyze-progress-current').textContent = '현재: 시작 중...';
+            document.getElementById('analyze-progress-count').textContent = '0 / 0 프레임';
+            document.getElementById('analyze-progress-stats').style.display = 'none';
 
             try {
                 const res = await fetch(`/api/analyze/${date}?camera=${camera}`, {
@@ -2130,16 +2301,128 @@
 
                 const data = await res.json();
                 if (data.success) {
-                    showStatus('analyze-status', `분석 시작! 작업 ID: ${data.task_id}. 우측 패널에서 진행 상황을 확인하세요.`, 'success');
+                    currentAnalyzeTaskId = data.task_id;
+                    showStatus('analyze-status', `분석 시작됨 (작업 ID: ${data.task_id})`, 'success');
+
+                    // 진행 상황 폴링 시작
+                    if (analyzeProgressInterval) clearInterval(analyzeProgressInterval);
+                    analyzeProgressInterval = setInterval(() => pollAnalyzeProgress(data.task_id), 1000);
                 } else {
                     showStatus('analyze-status', data.error || data.detail || '분석 실패', 'error');
+                    progressContainer.style.display = 'none';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
                 }
             } catch (e) {
                 showStatus('analyze-status', '오류: ' + e.message, 'error');
+                progressContainer.style.display = 'none';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
             }
+        }
 
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
+        async function pollAnalyzeProgress(taskId) {
+            try {
+                const res = await fetch('/api/tasks');
+                const data = await res.json();
+
+                if (!data.success) return;
+
+                // 현재 작업 찾기
+                const allTasks = [...(data.running || []), ...(data.recent || [])];
+                const task = allTasks.find(t => t.id === taskId);
+
+                if (!task) return;
+
+                const progress = task.total > 0 ? Math.round((task.progress / task.total) * 100) : 0;
+
+                // GUI 업데이트
+                document.getElementById('analyze-progress-percent').textContent = progress + '%';
+                document.getElementById('analyze-progress-bar').style.width = progress + '%';
+                document.getElementById('analyze-progress-count').textContent = `${task.progress} / ${task.total} 프레임`;
+
+                if (task.current_item) {
+                    document.getElementById('analyze-progress-current').textContent = `현재: ${task.current_item}`;
+                }
+
+                // 탐지 결과 표시 (task.detections 또는 로그에서 파싱)
+                const statsDiv = document.getElementById('analyze-progress-stats');
+
+                // 우선 task.detections에서 읽기
+                if (task.detections) {
+                    statsDiv.style.display = 'block';
+                    document.getElementById('analyze-cat-count').textContent = task.detections.cat || 0;
+                    document.getElementById('analyze-dog-count').textContent = task.detections.dog || 0;
+                    document.getElementById('analyze-person-count').textContent = task.detections.person || 0;
+                    document.getElementById('analyze-car-count').textContent = task.detections.car || 0;
+                } else {
+                    // 로그에서 파싱 (fallback)
+                    const logs = task.logs || [];
+                    if (logs.length > 0) {
+                        const lastLog = logs[logs.length - 1];
+                        if (lastLog.message) {
+                            statsDiv.style.display = 'block';
+                            const catMatch = lastLog.message.match(/고양이[:]?\s*(\d+)/);
+                            const dogMatch = lastLog.message.match(/개[:]?\s*(\d+)/);
+                            const personMatch = lastLog.message.match(/사람[:]?\s*(\d+)/);
+                            const carMatch = lastLog.message.match(/차[:]?\s*(\d+)/);
+
+                            if (catMatch) document.getElementById('analyze-cat-count').textContent = catMatch[1];
+                            if (dogMatch) document.getElementById('analyze-dog-count').textContent = dogMatch[1];
+                            if (personMatch) document.getElementById('analyze-person-count').textContent = personMatch[1];
+                            if (carMatch) document.getElementById('analyze-car-count').textContent = carMatch[1];
+                        }
+                    }
+                }
+
+                // 완료 또는 실패 처리
+                if (task.status === 'completed' || task.status === 'failed') {
+                    clearInterval(analyzeProgressInterval);
+                    analyzeProgressInterval = null;
+                    currentAnalyzeTaskId = null;
+
+                    const btn = document.getElementById('analyze-btn');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
+
+                    if (task.status === 'completed') {
+                        document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-check-circle" style="color:#00ff88;"></i> 분석 완료!';
+                        document.getElementById('analyze-progress-bar').style.background = 'linear-gradient(90deg, #00ff88, #00cc66)';
+
+                        // 탐지 결과 요약 메시지
+                        let resultMsg = `분석 완료! 총 ${task.total}개 프레임 처리됨`;
+                        if (task.detections) {
+                            const d = task.detections;
+                            const total = (d.cat || 0) + (d.dog || 0) + (d.person || 0) + (d.car || 0);
+                            if (total > 0) {
+                                resultMsg += ` (탐지: 고양이 ${d.cat || 0}, 개 ${d.dog || 0}, 사람 ${d.person || 0}, 차 ${d.car || 0})`;
+                            } else {
+                                resultMsg += ' (탐지된 객체 없음)';
+                            }
+                        }
+                        showStatus('analyze-status', resultMsg, 'success');
+
+                        // 대시보드 새로고침
+                        setTimeout(() => loadDashboard(), 500);
+                    } else {
+                        document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-exclamation-circle" style="color:#ff4444;"></i> 분석 실패';
+                        document.getElementById('analyze-progress-bar').style.background = '#ff4444';
+
+                        // 오류 메시지 추출
+                        const logs = task.logs || [];
+                        let errorMsg = '분석 중 오류가 발생했습니다.';
+                        if (logs.length > 0) {
+                            const lastLog = logs[logs.length - 1];
+                            if (lastLog.message && lastLog.message.includes('오류')) {
+                                errorMsg = lastLog.message;
+                            }
+                        }
+                        showStatus('analyze-status', errorMsg, 'error');
+                    }
+                }
+            } catch (e) {
+                console.error('Progress poll error:', e);
+            }
         }
 
         // ==================== 작업 현황 ====================
@@ -2424,14 +2707,14 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    alert(data.message);
+                    showModal(data.message, 'success', '서비스 제어');
                     // 상태 새로고침
                     updateSystemStatus();
                 } else {
-                    alert('오류: ' + data.error);
+                    showModal('오류: ' + data.error, 'error');
                 }
             } catch (e) {
-                alert('서비스 제어 실패: ' + e.message);
+                showModal('서비스 제어 실패: ' + e.message, 'error');
             }
         }
 

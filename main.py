@@ -987,17 +987,19 @@ def analyze_video_task(camera: str, date: str, task_id: str):
                         db.commit()
                         cursor.close()
 
-            # 10프레임마다 로그
+            # 10프레임마다 로그 (탐지 결과 포함)
             if analyzed % 10 == 0:
-                task_manager.add_log(task_id, f"{analyzed}/{frames_to_analyze} 분석 완료")
+                task_manager.add_log(task_id, f"{analyzed}/{frames_to_analyze} 분석 | 고양이:{detections_count['cat']} 개:{detections_count['dog']} 사람:{detections_count['person']} 차:{detections_count['car']}")
+                # 탐지 카운트도 task에 저장
+                task_manager.update_task(task_id, detections=detections_count.copy())
 
         cap.release()
         db.close()
 
         # 완료
         total_detections = sum(detections_count.values())
-        task_manager.update_task(task_id, status='completed', progress=frames_to_analyze)
-        task_manager.add_log(task_id, f"완료! 탐지: 고양이 {detections_count['cat']}, 개 {detections_count['dog']}, 사람 {detections_count['person']}, 차 {detections_count['car']}")
+        task_manager.update_task(task_id, status='completed', progress=frames_to_analyze, detections=detections_count)
+        task_manager.add_log(task_id, f"완료! 탐지: 고양이:{detections_count['cat']} 개:{detections_count['dog']} 사람:{detections_count['person']} 차:{detections_count['car']}")
 
     except Exception as e:
         task_manager.update_task(task_id, status='failed')
