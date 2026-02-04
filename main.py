@@ -1423,6 +1423,70 @@ async def get_system_status():
         return {"success": False, "error": str(e)}
 
 
+# ==================== 서비스 제어 API ====================
+@app.post("/api/system/service/{port}/stop")
+async def stop_service(port: int):
+    """서비스 정지"""
+    try:
+        # 해당 포트의 PID 찾기
+        lsof_result = subprocess.run(
+            ["lsof", "-i", f":{port}", "-t"],
+            capture_output=True, text=True, timeout=5
+        )
+        pids = lsof_result.stdout.strip().split('\n')
+
+        if not pids or not pids[0]:
+            return {"success": False, "error": f"포트 {port}에서 실행 중인 서비스가 없습니다"}
+
+        # 자기 자신(8002)은 정지 불가
+        if port == 8002:
+            return {"success": False, "error": "현재 실행 중인 서비스는 정지할 수 없습니다"}
+
+        # 프로세스 종료
+        for pid in pids:
+            if pid:
+                subprocess.run(["kill", "-TERM", pid], timeout=5)
+
+        return {"success": True, "message": f"포트 {port} 서비스를 정지했습니다"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/system/service/{port}/restart")
+async def restart_service(port: int):
+    """서비스 재시작 (systemd 서비스 기준)"""
+    try:
+        # 서비스 이름 매핑
+        service_map = {
+            8000: "minilms",
+            8001: "wonjusansam",
+            8002: "ssirn"
+        }
+
+        service_name = service_map.get(port)
+        if not service_name:
+            return {"success": False, "error": f"알 수 없는 포트: {port}"}
+
+        # 자기 자신(8002)은 재시작 불가 (연결 끊김)
+        if port == 8002:
+            return {"success": False, "error": "현재 실행 중인 서비스는 여기서 재시작할 수 없습니다"}
+
+        # systemctl restart 시도
+        result = subprocess.run(
+            ["systemctl", "restart", service_name],
+            capture_output=True, text=True, timeout=30
+        )
+
+        if result.returncode == 0:
+            return {"success": True, "message": f"{service_name} 서비스를 재시작했습니다"}
+        else:
+            # systemd 서비스가 아닌 경우, 직접 kill 후 안내
+            return {"success": False, "error": f"systemd 서비스가 아닙니다. 수동 재시작 필요: {result.stderr}"}
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 # ==================== 기본 API ====================
 @app.get("/api/health")
 async def health_check():
