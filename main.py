@@ -1428,7 +1428,27 @@ async def get_system_status():
 async def stop_service(port: int):
     """서비스 정지"""
     try:
-        # 해당 포트의 PID 찾기
+        # 자기 자신(8002)은 정지 불가
+        if port == 8002:
+            return {"success": False, "error": "현재 실행 중인 서비스는 정지할 수 없습니다"}
+
+        # 서비스 이름 매핑 (systemd)
+        service_map = {
+            8000: "minilms",
+            8001: "wonjusansam"
+        }
+
+        service_name = service_map.get(port)
+        if service_name:
+            # systemd 서비스 정지 시도
+            result = subprocess.run(
+                ["systemctl", "stop", service_name],
+                capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                return {"success": True, "message": f"{service_name} 서비스를 정지했습니다"}
+
+        # systemd가 아니면 직접 kill
         lsof_result = subprocess.run(
             ["lsof", "-i", f":{port}", "-t"],
             capture_output=True, text=True, timeout=5
@@ -1438,14 +1458,10 @@ async def stop_service(port: int):
         if not pids or not pids[0]:
             return {"success": False, "error": f"포트 {port}에서 실행 중인 서비스가 없습니다"}
 
-        # 자기 자신(8002)은 정지 불가
-        if port == 8002:
-            return {"success": False, "error": "현재 실행 중인 서비스는 정지할 수 없습니다"}
-
-        # 프로세스 종료
+        # 모든 관련 프로세스 강제 종료
         for pid in pids:
             if pid:
-                subprocess.run(["kill", "-TERM", pid], timeout=5)
+                subprocess.run(["kill", "-9", pid], timeout=5)
 
         return {"success": True, "message": f"포트 {port} 서비스를 정지했습니다"}
     except Exception as e:
