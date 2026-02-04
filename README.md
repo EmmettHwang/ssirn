@@ -3,9 +3,9 @@
 ## 프로젝트 개요
 지기술은 인공지능을 이해하고 만들고 활용하여 인류에게 도움이 되는 초일류 AGI(일반인공지능) 기업입니다. 본 웹사이트는 지기술의 비전, SSIRN 기술, 제품 로드맵, 그리고 연락처 정보를 소개합니다.
 
-**웹사이트**: http://ssirn.co.kr  
-**버전**: 1.7.0  
-**업데이트**: 2026-01-26
+**웹사이트**: http://ssirn.co.kr
+**버전**: 1.8.0
+**업데이트**: 2026-02-04
 
 ---
 
@@ -228,6 +228,11 @@ netlify deploy --prod
 
 ## 🔧 기술 스택
 
+### Backend
+- **FastAPI**: Python 웹 프레임워크
+- **Uvicorn**: ASGI 서버 (Port 8002)
+- **Nginx**: 리버스 프록시
+
 ### Frontend
 - **HTML5**: 시맨틱 마크업
 - **CSS3**: Flexbox, Grid, Custom Properties, Animations
@@ -238,6 +243,10 @@ netlify deploy --prod
 - **Pretendard 폰트**: jsDelivr CDN
 - **Font Awesome 6**: 아이콘
 - **No frameworks**: 순수 바닐라 JavaScript
+
+### 예정
+- **DB**: 로컬 서버 DB 연동
+- **FTP**: 원격 FTP 서버 연동
 
 ---
 
@@ -278,6 +287,13 @@ netlify deploy --prod
 ---
 
 ## 📝 변경 이력
+
+### v1.8.0 (2026-02-04) - 🚀 FastAPI 전환
+- ✅ FastAPI 백엔드 도입 (main.py)
+- ✅ Uvicorn ASGI 서버 구성 (Port 8002)
+- ✅ Nginx 리버스 프록시 연동
+- ✅ DB/FTP 연동 준비 (.env 설정 예정)
+- ✅ CLAUDE.md 프로젝트 정보 파일 추가
 
 ### v1.7.0 (2026-01-26) - 🎯 갤러리 심플 버전
 - ✅ 갤러리를 심플하게 재구성 (URL만 입력)
