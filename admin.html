@@ -1426,15 +1426,28 @@
                 <!-- 객체 분석 탭 -->
                 <div class="tab-content" id="tab-analyze">
                     <div class="admin-card">
-                        <h3><i class="fas fa-brain"></i> YOLOv8 동영상 분석</h3>
-                        <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
-                            <i class="fas fa-video" style="color:var(--color-primary);"></i>
-                            변환된 동영상을 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
-                            <small>* 1초당 1프레임씩 분석하여 효율적으로 처리됩니다.</small>
+                        <h3><i class="fas fa-brain"></i> YOLOv8 객체 분석</h3>
+                        <p id="analyze-description" style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
+                            <i class="fas fa-images" style="color:var(--color-primary);"></i>
+                            이미지를 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
+                            <small>* 파일명에서 타임스탬프를 추출합니다.</small>
                         </p>
                         <div class="form-group">
+                            <label>분석 소스</label>
+                            <div style="display:flex; gap:1rem; margin-bottom:0.5rem;">
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                    <input type="radio" name="analyze-source" value="images" checked onchange="onAnalyzeSourceChange()">
+                                    <i class="fas fa-images"></i> 이미지
+                                </label>
+                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                    <input type="radio" name="analyze-source" value="video" onchange="onAnalyzeSourceChange()">
+                                    <i class="fas fa-video"></i> 동영상
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <label>분석 카메라</label>
-                            <select id="analyze-camera" onchange="loadAnalyzeVideos()">
+                            <select id="analyze-camera" onchange="loadAnalyzeDates()">
                                 <option value="feed">메인 카메라</option>
                                 <option value="west">서쪽 카메라</option>
                                 <option value="roof">지붕 카메라</option>
@@ -1442,13 +1455,13 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>분석할 동영상</label>
+                            <label>분석할 날짜</label>
                             <select id="analyze-date">
-                                <option value="">동영상 로딩 중...</option>
+                                <option value="">로딩 중...</option>
                             </select>
                         </div>
                         <button class="convert-btn" id="analyze-btn" onclick="runAnalysis()" style="width:100%;">
-                            <i class="fas fa-play"></i> 동영상 분석 시작
+                            <i class="fas fa-play"></i> 분석 시작
                         </button>
                         <div class="status-message" id="analyze-status"></div>
 
@@ -2237,33 +2250,77 @@
         }
 
         // ==================== 객체 분석 ====================
-        async function loadAnalyzeVideos() {
+        function getAnalyzeSource() {
+            const radios = document.getElementsByName('analyze-source');
+            for (const r of radios) {
+                if (r.checked) return r.value;
+            }
+            return 'images';
+        }
+
+        function onAnalyzeSourceChange() {
+            const source = getAnalyzeSource();
+            const desc = document.getElementById('analyze-description');
+
+            if (source === 'images') {
+                desc.innerHTML = `
+                    <i class="fas fa-images" style="color:var(--color-primary);"></i>
+                    이미지를 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
+                    <small>* 파일명에서 타임스탬프를 추출합니다.</small>
+                `;
+            } else {
+                desc.innerHTML = `
+                    <i class="fas fa-video" style="color:var(--color-primary);"></i>
+                    동영상을 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
+                    <small>* 1초당 1프레임씩 분석하여 효율적으로 처리됩니다.</small>
+                `;
+            }
+
+            loadAnalyzeDates();
+        }
+
+        async function loadAnalyzeDates() {
             const camera = document.getElementById('analyze-camera').value;
+            const source = getAnalyzeSource();
             const select = document.getElementById('analyze-date');
 
-            select.innerHTML = '<option value="">동영상 로딩 중...</option>';
+            select.innerHTML = '<option value="">로딩 중...</option>';
 
             try {
-                const res = await fetch(`/api/feed/videos?camera=${camera}`);
+                let apiUrl, label;
+                if (source === 'images') {
+                    apiUrl = `/api/feed/image-dates?camera=${camera}`;
+                    label = '이미지';
+                } else {
+                    apiUrl = `/api/feed/videos?camera=${camera}`;
+                    label = '동영상';
+                }
+
+                const res = await fetch(apiUrl);
                 const data = await res.json();
 
-                if (data.success && data.videos && data.videos.length > 0) {
-                    select.innerHTML = data.videos.map(d => {
+                const dates = source === 'images' ? data.dates : data.videos;
+
+                if (data.success && dates && dates.length > 0) {
+                    select.innerHTML = dates.map(d => {
                         const formatted = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
-                        return `<option value="${d}">${formatted} (동영상)</option>`;
+                        return `<option value="${d}">${formatted} (${label})</option>`;
                     }).join('');
                 } else {
-                    select.innerHTML = '<option value="">변환된 동영상 없음</option>';
+                    select.innerHTML = `<option value="">${label} 없음</option>`;
                 }
             } catch (e) {
                 select.innerHTML = '<option value="">로드 실패</option>';
             }
         }
 
+        // 호환성을 위한 별칭
+        const loadAnalyzeVideos = loadAnalyzeDates;
+
         // 초기 로드
         document.addEventListener('DOMContentLoaded', () => {
             if (document.getElementById('analyze-camera')) {
-                loadAnalyzeVideos();
+                loadAnalyzeDates();
             }
         });
 
@@ -2273,17 +2330,19 @@
         async function runAnalysis() {
             const camera = document.getElementById('analyze-camera').value;
             const date = document.getElementById('analyze-date').value;
+            const source = getAnalyzeSource();
             const btn = document.getElementById('analyze-btn');
             const progressContainer = document.getElementById('analyze-progress-container');
 
             if (!date) {
-                showStatus('analyze-status', '동영상을 선택하세요.', 'error');
+                showStatus('analyze-status', '날짜를 선택하세요.', 'error');
                 return;
             }
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 시작 중...';
-            showStatus('analyze-status', '동영상 분석을 시작합니다...', 'info');
+            const sourceLabel = source === 'images' ? '이미지' : '동영상';
+            showStatus('analyze-status', `${sourceLabel} 분석을 시작합니다...`, 'info');
 
             // 진행 상황 GUI 초기화 및 표시
             progressContainer.style.display = 'block';
@@ -2291,15 +2350,18 @@
             document.getElementById('analyze-progress-percent').textContent = '0%';
             document.getElementById('analyze-progress-bar').style.width = '0%';
             document.getElementById('analyze-progress-current').textContent = '현재: 시작 중...';
-            document.getElementById('analyze-progress-count').textContent = '0 / 0 프레임';
+            document.getElementById('analyze-progress-count').textContent = source === 'images' ? '0 / 0 이미지' : '0 / 0 프레임';
             document.getElementById('analyze-progress-stats').style.display = 'none';
 
             try {
-                const res = await fetch(`/api/analyze/${date}?camera=${camera}`, {
-                    method: 'POST'
-                });
+                // 소스에 따라 다른 API 호출
+                const apiUrl = source === 'images'
+                    ? `/api/analyze/images/${date}?camera=${camera}`
+                    : `/api/analyze/${date}?camera=${camera}`;
 
+                const res = await fetch(apiUrl, { method: 'POST' });
                 const data = await res.json();
+
                 if (data.success) {
                     currentAnalyzeTaskId = data.task_id;
                     showStatus('analyze-status', `분석 시작됨 (작업 ID: ${data.task_id})`, 'success');
@@ -2311,13 +2373,13 @@
                     showStatus('analyze-status', data.error || data.detail || '분석 실패', 'error');
                     progressContainer.style.display = 'none';
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
+                    btn.innerHTML = '<i class="fas fa-play"></i> 분석 시작';
                 }
             } catch (e) {
                 showStatus('analyze-status', '오류: ' + e.message, 'error');
                 progressContainer.style.display = 'none';
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
+                btn.innerHTML = '<i class="fas fa-play"></i> 분석 시작';
             }
         }
 
@@ -2383,7 +2445,7 @@
 
                     const btn = document.getElementById('analyze-btn');
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> 동영상 분석 시작';
+                    btn.innerHTML = '<i class="fas fa-play"></i> 분석 시작';
 
                     if (task.status === 'completed') {
                         document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-check-circle" style="color:#00ff88;"></i> 분석 완료!';

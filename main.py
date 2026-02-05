@@ -452,6 +452,54 @@ async def get_video_list(camera: str = "feed"):
         return {"success": False, "error": str(e), "videos": [], "video_info": [], "all_720p": True}
 
 
+@app.get("/api/feed/image-dates")
+async def get_image_dates(camera: str = "feed"):
+    """이미지가 있는 날짜 목록 조회"""
+    try:
+        cam_info = CAMERA_PATHS.get(camera, CAMERA_PATHS["feed"])
+        cam_path = cam_info["path"]
+
+        ftp = get_ftp_connection()
+        try:
+            ftp.cwd(cam_path)
+            # 날짜 폴더 목록 가져오기
+            dirs = []
+            ftp.retrlines('LIST', dirs.append)
+
+            dates = []
+            for line in dirs:
+                parts = line.split()
+                if len(parts) >= 9:
+                    name = parts[8]
+                    # 날짜 형식 폴더만 (8자리 숫자)
+                    if len(name) == 8 and name.isdigit():
+                        # images 폴더가 있는지 확인
+                        try:
+                            ftp.cwd(f"{cam_path}/{name}/images")
+                            files = ftp.nlst()
+                            image_count = len([f for f in files if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+                            if image_count > 0:
+                                dates.append(name)
+                            ftp.cwd(cam_path)  # 원래 위치로
+                        except:
+                            ftp.cwd(cam_path)  # 원래 위치로
+                            continue
+
+            ftp.quit()
+            dates.sort(reverse=True)
+
+            return {
+                "success": True,
+                "dates": dates,
+                "camera": camera
+            }
+        except Exception as e:
+            ftp.quit()
+            return {"success": True, "dates": [], "camera": camera}
+    except Exception as e:
+        return {"success": False, "error": str(e), "dates": []}
+
+
 @app.get("/api/feed/video/{camera}/{date}")
 async def get_video_with_camera(camera: str, date: str):
     """FTP에서 동영상 스트리밍 (카메라 지정)"""
@@ -714,44 +762,47 @@ def get_db_connection():
 
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats(from_date: str = None, to_date: str = None):
-    """대시보드 통계"""
+    """대시보드 통계 - detections 테이블에서 직접 조회"""
     try:
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
 
         # 날짜 조건
         date_condition = ""
-        det_date_condition = ""
         params = []
         if from_date and to_date:
-            date_condition = "WHERE stat_date BETWEEN %s AND %s"
-            det_date_condition = "WHERE image_date BETWEEN %s AND %s"
+            date_condition = "WHERE image_date BETWEEN %s AND %s"
             params = [from_date, to_date]
         elif from_date:
-            date_condition = "WHERE stat_date >= %s"
-            det_date_condition = "WHERE image_date >= %s"
+            date_condition = "WHERE image_date >= %s"
             params = [from_date]
 
-        # 총계
+        # detections 테이블에서 객체별 카운트
         cursor.execute(f"""
             SELECT
-                COALESCE(SUM(total_detections), 0) as total,
-                COALESCE(SUM(cat_count), 0) as cats,
-                COALESCE(SUM(dog_count), 0) as dogs,
-                COALESCE(SUM(person_count), 0) as persons,
-                COALESCE(SUM(car_count), 0) as cars,
-                COALESCE(SUM(other_count), 0) as others
-            FROM daily_stats {date_condition}
+                COUNT(*) as total,
+                SUM(CASE WHEN object_class = 'cat' THEN 1 ELSE 0 END) as cats,
+                SUM(CASE WHEN object_class = 'dog' THEN 1 ELSE 0 END) as dogs,
+                SUM(CASE WHEN object_class = 'person' THEN 1 ELSE 0 END) as persons,
+                SUM(CASE WHEN object_class = 'car' THEN 1 ELSE 0 END) as cars,
+                SUM(CASE WHEN object_class NOT IN ('cat', 'dog', 'person', 'car') THEN 1 ELSE 0 END) as others
+            FROM detections {date_condition}
         """, params)
         totals = cursor.fetchone()
 
-        # 시간대별 합계
+        # 시간대별 합계 (detections 테이블에서)
         hourly = []
         for h in range(24):
-            cursor.execute(f"""
-                SELECT COALESCE(SUM(hour_{h}), 0) as cnt
-                FROM daily_stats {date_condition}
-            """, params)
+            hour_cond = f"HOUR(image_time) = {h}"
+            if date_condition:
+                cursor.execute(f"""
+                    SELECT COUNT(*) as cnt FROM detections
+                    {date_condition} AND {hour_cond}
+                """, params)
+            else:
+                cursor.execute(f"""
+                    SELECT COUNT(*) as cnt FROM detections WHERE {hour_cond}
+                """)
             result = cursor.fetchone()
             hourly.append(result['cnt'] if result else 0)
 
@@ -890,6 +941,199 @@ async def analyze_date(date: str, background_tasks: BackgroundTasks, request: Re
     return {"success": True, "message": f"Analyzing video {camera}/{date}", "task_id": task_id}
 
 
+@app.post("/api/analyze/images/{date}")
+async def analyze_images(date: str, background_tasks: BackgroundTasks, request: Request, camera: str = "feed"):
+    """특정 날짜 이미지 분석 (관리자 전용)"""
+    # 인증 확인
+    token = request.cookies.get("auth_token")
+    if not token or not verify_token(token):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    # 이미지 존재 여부 확인
+    cam_info = CAMERA_PATHS.get(camera, CAMERA_PATHS["feed"])
+    cam_path = cam_info["path"]
+    try:
+        ftp = get_ftp_connection()
+        ftp.cwd(f"{cam_path}/{date}/images")
+        files = [f for f in ftp.nlst() if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+        ftp.quit()
+        if not files:
+            return {"success": False, "error": f"이미지가 없습니다: {date}"}
+    except:
+        return {"success": False, "error": "FTP 연결 실패 또는 이미지 폴더 없음"}
+
+    # TaskManager로 작업 생성
+    task_id = task_manager.create_task("이미지분석", f"{camera}/{date} 이미지 분석 ({len(files)}개)")
+
+    # 백그라운드에서 분석 실행
+    background_tasks.add_task(analyze_images_task, camera, date, task_id)
+
+    return {"success": True, "message": f"Analyzing images {camera}/{date}", "task_id": task_id}
+
+
+def analyze_images_task(camera: str, date: str, task_id: str):
+    """이미지 분석 백그라운드 작업"""
+    import cv2
+    import numpy as np
+    import re
+
+    try:
+        task_manager.add_log(task_id, "이미지 목록 가져오기")
+
+        # 카메라 경로
+        cam_info = CAMERA_PATHS.get(camera, CAMERA_PATHS["feed"])
+        cam_path = cam_info["path"]
+
+        # FTP에서 이미지 목록 가져오기
+        ftp = get_ftp_connection()
+        ftp.cwd(f"{cam_path}/{date}/images")
+        files = sorted([f for f in ftp.nlst() if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+        ftp.quit()
+
+        total_images = len(files)
+        task_manager.update_task(task_id, total=total_images)
+        task_manager.add_log(task_id, f"총 {total_images}개 이미지 분석 예정")
+
+        # YOLO 모델 로드
+        from ultralytics import YOLO
+        model = YOLO(str(BASE_DIR / 'yolov8n.pt'))
+
+        # DB 연결
+        import mysql.connector
+        db = mysql.connector.connect(
+            host=os.getenv('DB_HOST', 'localhost'),
+            port=int(os.getenv('DB_PORT', 3306)),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME', 'ssirn')
+        )
+
+        analyzed = 0
+        detections_count = {'cat': 0, 'dog': 0, 'person': 0, 'car': 0}
+        date_formatted = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
+
+        for filename in files:
+            analyzed += 1
+            task_manager.update_task(task_id, progress=analyzed, current_item=filename)
+
+            # 파일명에서 타임스탬프 추출 (예: A26020400333410.jpg -> 00:33:34)
+            time_str = "00:00:00"
+            hours = 0
+            match = re.match(r'[A-Z](\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})', filename)
+            if match:
+                _, _, _, h, m, s = match.groups()
+                hours = int(h)
+                time_str = f"{h}:{m}:{s}"
+
+            # FTP에서 이미지 다운로드
+            try:
+                ftp = get_ftp_connection()
+                ftp.cwd(f"{cam_path}/{date}/images")
+                img_data = io.BytesIO()
+                ftp.retrbinary(f"RETR {filename}", img_data.write)
+                ftp.quit()
+                img_data.seek(0)
+
+                # 이미지 로드
+                img_array = np.frombuffer(img_data.read(), np.uint8)
+                frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+
+                if frame is None:
+                    continue
+
+                # YOLO 탐지
+                results = model(frame, verbose=False, conf=0.15)
+
+                for r in results:
+                    for box in r.boxes:
+                        cls_id = int(box.cls[0])
+                        cls_name = model.names[cls_id]
+                        conf = float(box.conf[0])
+
+                        if cls_name in detections_count:
+                            detections_count[cls_name] += 1
+
+                            # DB에 저장
+                            cursor = db.cursor()
+                            cursor.execute("""
+                                INSERT INTO detections (image_name, image_date, image_time, object_class, confidence, is_cat)
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """, (filename, date_formatted, time_str, cls_name, conf, cls_name=='cat'))
+
+                            # daily_stats 테이블 업데이트
+                            hour_col = f"hour_{hours}"
+                            is_cat = 1 if cls_name == 'cat' else 0
+                            is_other = 0 if cls_name == 'cat' else 1
+
+                            cursor.execute(f"""
+                                INSERT INTO daily_stats (stat_date, total_detections, cat_count, other_count, {hour_col})
+                                VALUES (%s, 1, %s, %s, 1)
+                                ON DUPLICATE KEY UPDATE
+                                    total_detections = total_detections + 1,
+                                    cat_count = cat_count + %s,
+                                    other_count = other_count + %s,
+                                    {hour_col} = {hour_col} + 1
+                            """, (date_formatted, is_cat, is_other, is_cat, is_other))
+
+                            db.commit()
+                            cursor.close()
+
+            except Exception as e:
+                task_manager.add_log(task_id, f"이미지 처리 오류: {filename} - {str(e)}")
+                continue
+
+            # 10개마다 로그
+            if analyzed % 10 == 0:
+                task_manager.add_log(task_id, f"{analyzed}/{total_images} 분석 | 고양이:{detections_count['cat']} 개:{detections_count['dog']} 사람:{detections_count['person']} 차:{detections_count['car']}")
+                task_manager.update_task(task_id, detections=detections_count.copy())
+
+        db.close()
+
+        # 완료
+        task_manager.update_task(task_id, status='completed', progress=total_images, detections=detections_count)
+        task_manager.add_log(task_id, f"완료! 탐지: 고양이:{detections_count['cat']} 개:{detections_count['dog']} 사람:{detections_count['person']} 차:{detections_count['car']}")
+
+    except Exception as e:
+        task_manager.update_task(task_id, status='failed')
+        task_manager.add_log(task_id, f"오류: {str(e)}")
+        print(f"Image analyze error: {e}")
+
+
+def extract_timestamp_from_frame(frame, frame_num, fps):
+    """프레임에서 타임스탬프 OCR 추출 (오른쪽 상단)"""
+    import pytesseract
+    import re
+
+    try:
+        h, w = frame.shape[:2]
+        # 오른쪽 상단 영역 추출 (상단 10%, 오른쪽 40%)
+        roi = frame[0:int(h*0.12), int(w*0.55):w]
+
+        # 전처리: 그레이스케일 + 이진화 (흰색 글씨 추출)
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        # 밝은 글씨 추출 (반전 후 이진화)
+        _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
+
+        # OCR 실행
+        text = pytesseract.image_to_string(thresh, config='--psm 7 -c tessedit_char_whitelist=0123456789:/-')
+
+        # 시간 패턴 찾기 (HH:MM:SS 또는 HH-MM-SS)
+        time_match = re.search(r'(\d{1,2})[:\-](\d{2})[:\-](\d{2})', text)
+        if time_match:
+            h, m, s = map(int, time_match.groups())
+            if 0 <= h <= 23 and 0 <= m <= 59 and 0 <= s <= 59:
+                return f"{h:02d}:{m:02d}:{s:02d}", h
+    except Exception as e:
+        pass
+
+    # OCR 실패 시 프레임 기반 시간 계산 (fallback)
+    frame_time = frame_num / fps
+    hours = int(frame_time // 3600)
+    mins = int((frame_time % 3600) // 60)
+    secs = int(frame_time % 60)
+    return f"{hours:02d}:{mins:02d}:{secs:02d}", hours
+
+
 def analyze_video_task(camera: str, date: str, task_id: str):
     """동영상 분석 백그라운드 작업"""
     import cv2
@@ -973,17 +1217,32 @@ def analyze_video_task(camera: str, date: str, task_id: str):
 
                         # DB에 저장
                         cursor = db.cursor()
-                        # 프레임 시간 계산
-                        frame_time = frame_num / fps
-                        hours = int(frame_time // 3600)
-                        mins = int((frame_time % 3600) // 60)
-                        secs = int(frame_time % 60)
-                        time_str = f"{hours:02d}:{mins:02d}:{secs:02d}"
+                        # 타임스탬프 OCR 추출 (오른쪽 상단에서)
+                        time_str, hours = extract_timestamp_from_frame(frame, frame_num, fps)
+                        date_formatted = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
 
+                        # detections 테이블에 저장
                         cursor.execute("""
                             INSERT INTO detections (image_name, image_date, image_time, object_class, confidence, is_cat)
                             VALUES (%s, %s, %s, %s, %s, %s)
-                        """, (f"frame_{frame_num}.jpg", date[:4]+'-'+date[4:6]+'-'+date[6:8], time_str, cls_name, conf, cls_name=='cat'))
+                        """, (f"frame_{frame_num}.jpg", date_formatted, time_str, cls_name, conf, cls_name=='cat'))
+
+                        # daily_stats 테이블 업데이트 (대시보드용)
+                        # 기존 테이블 구조: cat_count, other_count만 있음
+                        hour_col = f"hour_{hours}"
+                        is_cat = 1 if cls_name == 'cat' else 0
+                        is_other = 0 if cls_name == 'cat' else 1
+
+                        cursor.execute(f"""
+                            INSERT INTO daily_stats (stat_date, total_detections, cat_count, other_count, {hour_col})
+                            VALUES (%s, 1, %s, %s, 1)
+                            ON DUPLICATE KEY UPDATE
+                                total_detections = total_detections + 1,
+                                cat_count = cat_count + %s,
+                                other_count = other_count + %s,
+                                {hour_col} = {hour_col} + 1
+                        """, (date_formatted, is_cat, is_other, is_cat, is_other))
+
                         db.commit()
                         cursor.close()
 
