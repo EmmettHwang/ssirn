@@ -1372,7 +1372,7 @@
                 this.el.speedControl.style.display = 'flex';
                 this.el.video.src = `/api/feed/video/${this.cameraId}/${date}`;
                 this.applyStoredSpeed(); // 저장된 배속 적용
-                this.el.video.play();
+                this.el.video.play().catch(() => {});
                 this.el.status.textContent = '동영상';
                 this.el.status.className = 'camera-card__status';
             }
