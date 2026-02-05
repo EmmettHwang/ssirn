@@ -1493,13 +1493,8 @@
                     <!-- 대시보드 섹션 -->
                     <div class="dashboard-section">
                         <div class="dashboard-header">
-                            <h4><i class="fas fa-chart-line"></i> 객체 탐지 현황</h4>
-                            <div class="dashboard-controls">
-                                <input type="date" id="dash-date-from">
-                                <span style="color:var(--color-text-muted);">~</span>
-                                <input type="date" id="dash-date-to">
-                                <button class="dash-btn" onclick="loadDashboard()"><i class="fas fa-sync"></i></button>
-                            </div>
+                            <h4><i class="fas fa-chart-line"></i> 객체 탐지 현황 <span style="font-size:0.8rem;color:var(--color-text-muted);font-weight:normal;">(최근 7일)</span></h4>
+                            <button class="dash-btn" onclick="loadDashboard()"><i class="fas fa-sync"></i></button>
                         </div>
                         <!-- 통계 카드 -->
                         <div class="stats-grid">
@@ -2171,29 +2166,21 @@
         let dashboardRefreshInterval = null;
 
         function initDashboard() {
-            // 오늘 기준 7일 전부터
-            const today = new Date();
-            const weekAgo = new Date(today);
-            weekAgo.setDate(today.getDate() - 6);
-
-            const formatDate = (d) => {
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${y}-${m}-${day}`;
-            };
-
-            document.getElementById('dash-date-from').value = formatDate(weekAgo);
-            document.getElementById('dash-date-to').value = formatDate(today);
             loadDashboard();
-
             // 대시보드 자동 새로고침 (10초마다)
             dashboardRefreshInterval = setInterval(loadDashboard, 10000);
         }
 
+        function getDashboardDates() {
+            const today = new Date();
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 6);
+            const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            return { from: fmt(weekAgo), to: fmt(today) };
+        }
+
         async function loadDashboard() {
-            const fromDate = document.getElementById('dash-date-from').value;
-            const toDate = document.getElementById('dash-date-to').value;
+            const { from: fromDate, to: toDate } = getDashboardDates();
 
             // 통계 로드
             try {

@@ -407,7 +407,7 @@ auto_scheduler = AutoScheduler()
 app = FastAPI(
     title="SSIRN - 지기술(G-TECH)",
     description="지기술 공식 웹사이트 API",
-    version="2.4.0"
+    version="2.4.2"
 )
 
 # 설정
@@ -1126,9 +1126,12 @@ def get_db_connection():
 
 
 @app.get("/api/dashboard/stats")
-async def get_dashboard_stats(from_date: str = None, to_date: str = None):
+async def get_dashboard_stats(request: Request):
     """대시보드 통계 - detections 테이블에서 직접 조회"""
     try:
+        from_date = request.query_params.get('from_date') or request.query_params.get('from')
+        to_date = request.query_params.get('to_date') or request.query_params.get('to')
+
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
 
@@ -1199,9 +1202,12 @@ async def get_dashboard_stats(from_date: str = None, to_date: str = None):
 
 
 @app.get("/api/dashboard/detections")
-async def get_detections(from_date: str = None, to_date: str = None, limit: int = 50):
+async def get_detections(request: Request, limit: int = 50):
     """탐지 기록 조회"""
     try:
+        from_date = request.query_params.get('from_date') or request.query_params.get('from')
+        to_date = request.query_params.get('to_date') or request.query_params.get('to')
+
         db = get_db_connection()
         cursor = db.cursor(dictionary=True)
 
@@ -1214,8 +1220,8 @@ async def get_detections(from_date: str = None, to_date: str = None, limit: int 
         cursor.execute(f"""
             SELECT
                 image_name as image,
-                DATE_FORMAT(image_date, '%%Y%%m%%d') as date,
-                TIME_FORMAT(image_time, '%%H:%%i:%%s') as time,
+                REPLACE(DATE(image_date), '-', '') as date,
+                CONCAT(LPAD(HOUR(image_time),2,'0'), ':', LPAD(MINUTE(image_time),2,'0'), ':', LPAD(SECOND(image_time),2,'0')) as time,
                 object_class as class,
                 confidence,
                 is_cat,
