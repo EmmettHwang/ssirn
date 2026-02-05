@@ -1059,6 +1059,11 @@
             padding: 6px 10px;
             background: var(--color-bg-light);
             border: 1px solid var(--color-border);
+            color-scheme: dark;
+        }
+
+        .dashboard-controls input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
             border-radius: 6px;
             color: var(--color-text);
             font-size: 0.85rem;
