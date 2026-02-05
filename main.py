@@ -226,6 +226,11 @@ async def dashboard():
     return FileResponse(BASE_DIR / "dashboard.html")
 
 
+@app.get("/test3d.html", response_class=HTMLResponse)
+async def test3d():
+    return FileResponse(BASE_DIR / "test3d.html")
+
+
 # ==================== 인증 API ====================
 @app.post("/api/login")
 async def login(request: LoginRequest, response: Response):
@@ -869,6 +874,69 @@ async def get_detections(from_date: str = None, to_date: str = None, limit: int 
         return {"success": True, "detections": detections}
     except Exception as e:
         return {"success": False, "error": str(e), "detections": []}
+
+
+@app.get("/api/dashboard/heatmap")
+async def get_heatmap_data(from_date: str = None, to_date: str = None):
+    """날짜별/시간대별 탐지 데이터 (3D Surface Plot용)"""
+    try:
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        # 날짜 조건
+        params = []
+        where_clause = "WHERE 1=1"
+        if from_date and to_date:
+            where_clause += " AND image_date BETWEEN %s AND %s"
+            params.extend([from_date, to_date])
+
+        # 날짜별/시간대별 탐지 수 집계
+        cursor.execute(f"""
+            SELECT
+                DATE(image_date) as date,
+                HOUR(image_time) as hour,
+                COUNT(*) as count
+            FROM detections
+            {where_clause}
+            GROUP BY DATE(image_date), HOUR(image_time)
+            ORDER BY date, hour
+        """, params)
+
+        results = cursor.fetchall()
+
+        # 날짜 목록 추출
+        cursor.execute(f"""
+            SELECT DISTINCT DATE(image_date) as date
+            FROM detections
+            {where_clause}
+            ORDER BY date
+        """, params)
+        dates = [str(row['date']) for row in cursor.fetchall()]
+
+        cursor.close()
+        db.close()
+
+        # 2D 배열로 변환 (날짜 x 시간)
+        data = {}
+        for row in results:
+            date = str(row['date'])
+            hour = row['hour']
+            count = row['count']
+            if date not in data:
+                data[date] = [0] * 24
+            data[date][hour] = count
+
+        # Z값 배열 생성 (각 날짜별 24시간 데이터)
+        z_values = [data.get(d, [0]*24) for d in dates]
+
+        return {
+            "success": True,
+            "dates": dates,
+            "hours": list(range(24)),
+            "z": z_values
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "dates": [], "hours": [], "z": []}
 
 
 @app.get("/api/dashboard/cats")

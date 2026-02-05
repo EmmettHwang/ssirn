@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         .dashboard-container {
             max-width: 1400px;
@@ -51,6 +52,12 @@
             border-radius: 8px;
             color: var(--color-text);
             font-size: 0.9rem;
+            color-scheme: dark;
+        }
+
+        .date-filter input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
         }
 
         .date-filter button {
@@ -146,6 +153,39 @@
         .chart-container {
             position: relative;
             height: 300px;
+        }
+
+        /* 3D 차트 섹션 */
+        .chart-3d-section {
+            margin-bottom: 2rem;
+        }
+
+        .chart-3d-card {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .chart-3d-card h3 {
+            font-size: 1rem;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-3d-card h3 i {
+            color: var(--color-primary);
+        }
+
+        .chart-3d-container {
+            width: 100%;
+            height: 500px;
+            min-height: 500px;
+            border-radius: 8px;
+            background: rgba(20, 25, 40, 0.5);
         }
 
         /* 객체 목록 */
@@ -408,6 +448,14 @@
                 </div>
             </div>
 
+            <!-- 3D Surface Chart -->
+            <div class="chart-3d-section">
+                <div class="chart-3d-card">
+                    <h3><i class="fas fa-water"></i> 날짜/시간대별 출몰 분포 (3D)</h3>
+                    <div class="chart-3d-container" id="surface3dChart"></div>
+                </div>
+            </div>
+
             <!-- Cat Profiles -->
             <div class="cats-section">
                 <h3 style="color: var(--color-text); margin-bottom: 1rem;">
@@ -453,10 +501,22 @@
 
         // 초기화
         document.addEventListener('DOMContentLoaded', () => {
-            // 기본 날짜 설정 (오늘)
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date-from').value = today;
-            document.getElementById('date-to').value = today;
+            // 기본 날짜 설정 (최근 7일: 시작일 = 오늘 - 6일)
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${day}`;
+
+            const weekAgo = new Date(today);
+            weekAgo.setDate(today.getDate() - 6);
+            const wYear = weekAgo.getFullYear();
+            const wMonth = String(weekAgo.getMonth() + 1).padStart(2, '0');
+            const wDay = String(weekAgo.getDate()).padStart(2, '0');
+            const weekAgoStr = `${wYear}-${wMonth}-${wDay}`;
+
+            document.getElementById('date-from').value = weekAgoStr;
+            document.getElementById('date-to').value = todayStr;
 
             loadData();
         });
@@ -465,14 +525,11 @@
             const fromDate = document.getElementById('date-from').value;
             const toDate = document.getElementById('date-to').value;
 
-            // 통계 로드
-            await loadStats(fromDate, toDate);
-
-            // 탐지 기록 로드
-            await loadDetections(fromDate, toDate);
-
-            // 고양이 프로필 로드
-            await loadCatProfiles(fromDate, toDate);
+            // 각각 독립적으로 로드 (하나가 실패해도 다른 것은 실행)
+            loadStats(fromDate, toDate).catch(e => console.error('Stats error:', e));
+            loadDetections(fromDate, toDate).catch(e => console.error('Detections error:', e));
+            loadCatProfiles(fromDate, toDate).catch(e => console.error('Cats error:', e));
+            load3DSurfaceChart(fromDate, toDate).catch(e => console.error('3D chart error:', e));
         }
 
         async function loadStats(fromDate, toDate) {
@@ -663,6 +720,120 @@
                     }
                 }
             });
+        }
+
+        async function load3DSurfaceChart(fromDate, toDate) {
+            try {
+                const params = new URLSearchParams();
+                if (fromDate) params.append('from_date', fromDate);
+                if (toDate) params.append('to_date', toDate);
+
+                const response = await fetch(`/api/dashboard/heatmap?${params}`);
+                const data = await response.json();
+
+                // 7일치 날짜 생성
+                const dates = [];
+                const endDate = new Date(toDate);
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(endDate);
+                    d.setDate(d.getDate() - i);
+                    dates.push(d.toISOString().split('T')[0]);
+                }
+
+                // 실제 데이터를 7일 배열에 매핑
+                const zValues = dates.map(date => {
+                    if (data.success && data.dates.includes(date)) {
+                        const idx = data.dates.indexOf(date);
+                        return data.z[idx];
+                    }
+                    return Array(24).fill(0);
+                });
+
+                update3DSurfaceChart(dates, data.hours || [...Array(24).keys()], zValues);
+            } catch (error) {
+                console.error('3D 차트 로드 실패:', error);
+                // 에러 시에도 빈 3D 그래프 표시
+                const dates = [];
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    dates.push(d.toISOString().split('T')[0]);
+                }
+                const zValues = dates.map(() => Array(24).fill(0));
+                update3DSurfaceChart(dates, [...Array(24).keys()], zValues);
+            }
+        }
+
+        function update3DSurfaceChart(dates, hours, zValues) {
+            const container = document.getElementById('surface3dChart');
+
+            // Plotly 로드 확인
+            if (typeof Plotly === 'undefined') {
+                container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#ff6b6b;">Plotly 로드 실패</div>';
+                return;
+            }
+
+            // 날짜 레이블
+            const dateLabels = dates.map(d => {
+                const parts = d.split('-');
+                return `${parts[1]}/${parts[2]}`;
+            });
+
+            // 3D Surface 데이터
+            const data = [{
+                type: 'surface',
+                z: zValues,
+                colorscale: [
+                    [0, '#0d0887'],
+                    [0.25, '#7e03a8'],
+                    [0.5, '#cc4778'],
+                    [0.75, '#f89540'],
+                    [1, '#f0f921']
+                ],
+                showscale: true,
+                colorbar: {
+                    tickfont: { color: '#ccc' },
+                    title: { text: '탐지', font: { color: '#ccc' } }
+                }
+            }];
+
+            const layout = {
+                autosize: true,
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                paper_bgcolor: 'transparent',
+                scene: {
+                    bgcolor: 'rgba(20,25,40,0.8)',
+                    xaxis: {
+                        title: { text: '시간', font: { color: '#ccc' } },
+                        ticktext: ['0시', '6시', '12시', '18시', '23시'],
+                        tickvals: [0, 6, 12, 18, 23],
+                        tickfont: { color: '#aaa' },
+                        gridcolor: '#444',
+                        showbackground: true,
+                        backgroundcolor: 'rgba(30,35,50,0.8)'
+                    },
+                    yaxis: {
+                        title: { text: '날짜', font: { color: '#ccc' } },
+                        ticktext: dateLabels,
+                        tickvals: dateLabels.map((_, i) => i),
+                        tickfont: { color: '#aaa' },
+                        gridcolor: '#444',
+                        showbackground: true,
+                        backgroundcolor: 'rgba(30,35,50,0.8)'
+                    },
+                    zaxis: {
+                        title: { text: '탐지 수', font: { color: '#ccc' } },
+                        tickfont: { color: '#aaa' },
+                        gridcolor: '#444',
+                        showbackground: true,
+                        backgroundcolor: 'rgba(30,35,50,0.8)'
+                    },
+                    camera: { eye: { x: 1.8, y: -1.5, z: 1.0 } }
+                }
+            };
+
+            Plotly.newPlot(container, data, layout, { responsive: true, displaylogo: false });
         }
     </script>
 </body>
