@@ -95,10 +95,319 @@ class TaskManager:
 
 task_manager = TaskManager()
 
+
+# ==================== 자동화 스케줄러 ====================
+class AutoScheduler:
+    """이미지 분석 + 영상 변환 자동화 스케줄러
+
+    - 분석: 설정된 주기(1~24시간)로 오늘/어제 이미지 분석
+    - 영상 변환: 매일 자정에 이전 날짜들만 변환 (당일 제외)
+    """
+    def __init__(self):
+        self.running = False
+        self.thread = None
+        self.interval = 3600  # 기본 1시간
+        self.last_run = None
+        self.next_run = None
+        self.last_conversion = None  # 마지막 영상 변환 날짜
+        self.lock = threading.Lock()
+        self.status_log = []
+
+    def start(self, interval_minutes: int = 60):
+        """스케줄러 시작"""
+        with self.lock:
+            if self.running:
+                return False
+            self.running = True
+            self.interval = interval_minutes * 60
+            self.thread = threading.Thread(target=self._run_loop, daemon=True)
+            self.thread.start()
+            self._log(f"자동화 시작 (분석: {interval_minutes}분, 변환: 매일 자정)")
+            return True
+
+    def stop(self):
+        """스케줄러 중지"""
+        with self.lock:
+            if not self.running:
+                return False
+            self.running = False
+            self._log("자동화 중지")
+            return True
+
+    def _log(self, msg: str):
+        """로그 추가"""
+        self.status_log.append({
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "message": msg
+        })
+        # 최대 50개 유지
+        if len(self.status_log) > 50:
+            self.status_log = self.status_log[-50:]
+
+    def _run_loop(self):
+        """스케줄러 루프"""
+        import time
+        while self.running:
+            now = datetime.now()
+
+            # 자정 체크 (00:00 ~ 00:10 사이에 영상 변환 실행)
+            if now.hour == 0 and now.minute < 10:
+                today_date = now.strftime("%Y-%m-%d")
+                if self.last_conversion != today_date:
+                    self._log("=== 자정 영상 변환 시작 ===")
+                    self._run_midnight_conversion()
+                    self.last_conversion = today_date
+                    self._log("=== 자정 영상 변환 완료 ===")
+
+            # 정기 분석 실행
+            try:
+                self._run_analysis()
+                self.last_run = datetime.now()
+                self.next_run = self.last_run + timedelta(seconds=self.interval)
+                self._log(f"다음 분석: {self.next_run.strftime('%H:%M:%S')}")
+            except Exception as e:
+                self._log(f"분석 오류: {str(e)}")
+
+            # 인터벌 대기 (10초마다 체크)
+            for _ in range(self.interval // 10):
+                if not self.running:
+                    break
+                # 자정 체크 (대기 중에도)
+                now = datetime.now()
+                if now.hour == 0 and now.minute < 10:
+                    today_date = now.strftime("%Y-%m-%d")
+                    if self.last_conversion != today_date:
+                        self._log("=== 자정 영상 변환 시작 ===")
+                        self._run_midnight_conversion()
+                        self.last_conversion = today_date
+                        self._log("=== 자정 영상 변환 완료 ===")
+                time.sleep(10)
+
+    def _run_analysis(self):
+        """이미지 분석 실행: 오늘과 어제 날짜만"""
+        today = datetime.now()
+        yesterday = today - timedelta(days=1)
+        dates = [yesterday.strftime("%Y%m%d"), today.strftime("%Y%m%d")]
+
+        for date in dates:
+            self._log(f"[분석] {date} 시작")
+            try:
+                self._analyze_images("feed", date)
+                self._log(f"[분석] {date} 완료")
+            except Exception as e:
+                self._log(f"[분석] {date} 오류: {str(e)}")
+
+    def _run_midnight_conversion(self):
+        """자정 영상 변환: 오늘 이전의 모든 날짜 변환"""
+        today = datetime.now()
+        cam_info = CAMERA_PATHS.get("feed", CAMERA_PATHS["feed"])
+        cam_path = cam_info["path"]
+
+        try:
+            ftp = get_ftp_connection()
+            ftp.cwd(cam_path)
+            folders = [f for f in ftp.nlst() if f.isdigit() and len(f) == 8]
+            ftp.quit()
+        except Exception as e:
+            self._log(f"[변환] 폴더 목록 조회 실패: {str(e)}")
+            return
+
+        today_str = today.strftime("%Y%m%d")
+        # 오늘 이전 날짜만 필터링
+        dates_to_convert = sorted([f for f in folders if f < today_str])
+
+        if not dates_to_convert:
+            self._log("[변환] 변환할 날짜 없음")
+            return
+
+        self._log(f"[변환] {len(dates_to_convert)}일치 확인")
+
+        for date in dates_to_convert:
+            try:
+                self._convert_to_video("feed", date)
+            except Exception as e:
+                self._log(f"[변환] {date} 오류: {str(e)}")
+
+    def _analyze_images(self, camera: str, date: str):
+        """이미지 분석 (간소화 버전)"""
+        import cv2
+        import numpy as np
+        import re
+
+        date_formatted = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
+        cam_info = CAMERA_PATHS.get(camera, CAMERA_PATHS["feed"])
+        cam_path = cam_info["path"]
+
+        try:
+            ftp = get_ftp_connection()
+            ftp.cwd(f"{cam_path}/{date}/images")
+            files = sorted([f for f in ftp.nlst() if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+            ftp.quit()
+        except:
+            self._log(f"[{date}] 이미지 없음")
+            return
+
+        if not files:
+            return
+
+        self._log(f"[{date}] {len(files)}개 이미지 분석")
+        log_job_history("analysis", date_formatted, "started", len(files), 0, "분석 시작")
+
+        # YOLO 모델 로드
+        from ultralytics import YOLO
+        model = YOLO(str(BASE_DIR / 'yolov8n.pt'))
+
+        # DB 연결
+        db = get_db_connection()
+
+        # 이미 분석된 이미지 확인
+        cursor = db.cursor()
+        cursor.execute("SELECT image_name FROM detections WHERE image_date = %s", (date_formatted,))
+        analyzed_files = set(row[0] for row in cursor.fetchall())
+        cursor.close()
+
+        # 분석되지 않은 이미지만 처리
+        files_to_analyze = [f for f in files if f not in analyzed_files]
+        if not files_to_analyze:
+            self._log(f"[{date}] 이미 분석됨")
+            log_job_history("analysis", date_formatted, "completed", 0, 0, "이미 분석됨")
+            db.close()
+            return
+
+        self._log(f"[{date}] {len(files_to_analyze)}개 새 이미지 분석")
+        detection_count = 0
+
+        for filename in files_to_analyze:
+            # 파일명에서 시간 추출
+            time_str = "00:00:00"
+            hours = 0
+            match = re.match(r'[A-Z](\d{2})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})', filename)
+            if match:
+                _, _, _, h, m, s = match.groups()
+                hours = int(h)
+                time_str = f"{h}:{m}:{s}"
+
+            try:
+                ftp = get_ftp_connection()
+                ftp.cwd(f"{cam_path}/{date}/images")
+                img_data = io.BytesIO()
+                ftp.retrbinary(f"RETR {filename}", img_data.write)
+                ftp.quit()
+                img_data.seek(0)
+
+                img_array = np.frombuffer(img_data.read(), np.uint8)
+                frame = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+                if frame is None:
+                    continue
+
+                # 리사이즈 (메모리 절약)
+                h, w = frame.shape[:2]
+                if max(h, w) > 640:
+                    scale = 640 / max(h, w)
+                    frame = cv2.resize(frame, (int(w*scale), int(h*scale)))
+
+                # YOLO 탐지
+                results = model(frame, verbose=False, conf=0.15)
+
+                for r in results:
+                    for box in r.boxes:
+                        cls_id = int(box.cls[0])
+                        cls_name = model.names[cls_id]
+                        conf = float(box.conf[0])
+
+                        if cls_name in ['cat', 'dog', 'person', 'car']:
+                            detection_count += 1
+                            cursor = db.cursor()
+                            cursor.execute("""
+                                INSERT INTO detections (image_name, image_date, image_time, object_class, confidence, is_cat)
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                            """, (filename, date_formatted, time_str, cls_name, conf, cls_name=='cat'))
+
+                            # daily_stats 업데이트
+                            hour_col = f"hour_{hours}"
+                            is_cat = 1 if cls_name == 'cat' else 0
+                            is_other = 0 if cls_name == 'cat' else 1
+                            cursor.execute(f"""
+                                INSERT INTO daily_stats (stat_date, total_detections, cat_count, other_count, {hour_col})
+                                VALUES (%s, 1, %s, %s, 1)
+                                ON DUPLICATE KEY UPDATE
+                                    total_detections = total_detections + 1,
+                                    cat_count = cat_count + %s,
+                                    other_count = other_count + %s,
+                                    {hour_col} = {hour_col} + 1
+                            """, (date_formatted, is_cat, is_other, is_cat, is_other))
+
+                            db.commit()
+                            cursor.close()
+            except:
+                continue
+
+        db.close()
+        log_job_history("analysis", date_formatted, "completed", len(files_to_analyze), detection_count,
+                        f"{len(files_to_analyze)}개 이미지, {detection_count}개 탐지")
+
+    def _convert_to_video(self, camera: str, date: str):
+        """이미지를 영상으로 변환"""
+        date_formatted = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
+        cam_info = CAMERA_PATHS.get(camera, CAMERA_PATHS["feed"])
+        cam_path = cam_info["path"]
+        video_path = cam_info["video"]
+
+        try:
+            # 영상이 이미 존재하는지 확인
+            ftp = get_ftp_connection()
+            ftp.cwd(video_path)
+            existing = ftp.nlst()
+            ftp.quit()
+
+            if f"{date}.mp4" in existing:
+                self._log(f"[{date}] 영상 이미 존재")
+                return
+        except:
+            pass
+
+        # 이미지 목록 확인
+        try:
+            ftp = get_ftp_connection()
+            ftp.cwd(f"{cam_path}/{date}/images")
+            files = sorted([f for f in ftp.nlst() if f.lower().endswith(('.jpg', '.jpeg', '.png'))])
+            ftp.quit()
+        except:
+            return
+
+        if len(files) < 10:
+            return
+
+        self._log(f"[{date}] 영상 변환 시작")
+        log_job_history("conversion", date_formatted, "started", len(files), 0, "영상 변환 시작")
+        try:
+            convert_images_to_video(date, camera, resize_720p=True)
+            self._log(f"[{date}] 영상 변환 완료")
+            log_job_history("conversion", date_formatted, "completed", len(files), 0, "영상 변환 완료")
+        except Exception as e:
+            self._log(f"[{date}] 영상 변환 실패: {str(e)}")
+            log_job_history("conversion", date_formatted, "failed", len(files), 0, str(e))
+
+    def get_status(self):
+        """상태 조회"""
+        return {
+            "running": self.running,
+            "interval_minutes": self.interval // 60,
+            "last_run": self.last_run.isoformat() if self.last_run else None,
+            "next_run": self.next_run.isoformat() if self.next_run else None,
+            "last_conversion": self.last_conversion,
+            "conversion_schedule": "매일 00:00 (이전 날짜만)",
+            "logs": self.status_log[-20:]
+        }
+
+
+auto_scheduler = AutoScheduler()
+
+
 app = FastAPI(
     title="SSIRN - 지기술(G-TECH)",
     description="지기술 공식 웹사이트 API",
-    version="2.0.0"
+    version="2.4.0"
 )
 
 # 설정
@@ -117,6 +426,57 @@ DB_PORT = int(os.getenv("DB_PORT", 3306))
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME", "ssirn")
+
+
+def init_job_history_table():
+    """작업 히스토리 테이블 초기화"""
+    try:
+        db = mysql.connector.connect(
+            host=DB_HOST, port=DB_PORT, user=DB_USER,
+            password=DB_PASSWORD, database=DB_NAME
+        )
+        cursor = db.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS job_history (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                job_type ENUM('analysis', 'conversion') NOT NULL,
+                target_date VARCHAR(10) NOT NULL,
+                status ENUM('started', 'completed', 'failed') NOT NULL,
+                images_processed INT DEFAULT 0,
+                detections_found INT DEFAULT 0,
+                message TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        db.commit()
+        cursor.close()
+        db.close()
+    except Exception as e:
+        print(f"job_history 테이블 초기화 실패: {e}")
+
+
+def log_job_history(job_type: str, target_date: str, status: str,
+                    images_processed: int = 0, detections_found: int = 0, message: str = ""):
+    """작업 히스토리 DB 기록"""
+    try:
+        db = mysql.connector.connect(
+            host=DB_HOST, port=DB_PORT, user=DB_USER,
+            password=DB_PASSWORD, database=DB_NAME
+        )
+        cursor = db.cursor()
+        cursor.execute("""
+            INSERT INTO job_history (job_type, target_date, status, images_processed, detections_found, message)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (job_type, target_date, status, images_processed, detections_found, message))
+        db.commit()
+        cursor.close()
+        db.close()
+    except Exception as e:
+        print(f"job_history 기록 실패: {e}")
+
+
+# 앱 시작시 테이블 초기화
+init_job_history_table()
 
 # 정적 파일 마운트
 app.mount("/css", StaticFiles(directory=BASE_DIR / "css"), name="css")
@@ -939,6 +1299,63 @@ async def get_heatmap_data(from_date: str = None, to_date: str = None):
         return {"success": False, "error": str(e), "dates": [], "hours": [], "z": []}
 
 
+@app.get("/api/dashboard/job-history")
+async def get_job_history(days: int = 7, job_type: str = None):
+    """작업 히스토리 조회 (최근 N일)"""
+    try:
+        db = get_db_connection()
+        cursor = db.cursor(dictionary=True)
+
+        where_clause = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL %s DAY)"
+        params = [days]
+        if job_type:
+            where_clause += " AND job_type = %s"
+            params.append(job_type)
+
+        cursor.execute(f"""
+            SELECT
+                id,
+                job_type,
+                target_date,
+                status,
+                images_processed,
+                detections_found,
+                message,
+                DATE_FORMAT(created_at, '%%Y-%%m-%%d %%H:%%i:%%s') as created_at
+            FROM job_history
+            {where_clause}
+            ORDER BY created_at DESC
+            LIMIT 100
+        """, params)
+
+        history = cursor.fetchall()
+
+        # 요약 통계
+        cursor.execute(f"""
+            SELECT
+                job_type,
+                status,
+                COUNT(*) as count,
+                SUM(images_processed) as total_images,
+                SUM(detections_found) as total_detections
+            FROM job_history
+            {where_clause}
+            GROUP BY job_type, status
+        """, params)
+        summary = cursor.fetchall()
+
+        cursor.close()
+        db.close()
+
+        return {
+            "success": True,
+            "history": history,
+            "summary": summary
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e), "history": [], "summary": []}
+
+
 @app.get("/api/dashboard/cats")
 async def get_cat_profiles(from_date: str = None, to_date: str = None):
     """고양이 개체별 프로필"""
@@ -1037,6 +1454,65 @@ async def analyze_images(date: str, background_tasks: BackgroundTasks, request: 
     background_tasks.add_task(analyze_images_task, camera, date, task_id)
 
     return {"success": True, "message": f"Analyzing images {camera}/{date}", "task_id": task_id}
+
+
+# ==================== 자동화 API ====================
+@app.post("/api/auto/start")
+async def start_auto_scheduler(request: Request, interval: int = 60):
+    """자동화 스케줄러 시작"""
+    token = request.cookies.get("auth_token")
+    if not token or not verify_token(token):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    if auto_scheduler.start(interval):
+        return {"success": True, "message": f"자동화 시작 (주기: {interval}분)"}
+    return {"success": False, "message": "이미 실행 중입니다"}
+
+
+@app.post("/api/auto/stop")
+async def stop_auto_scheduler(request: Request):
+    """자동화 스케줄러 중지"""
+    token = request.cookies.get("auth_token")
+    if not token or not verify_token(token):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    if auto_scheduler.stop():
+        return {"success": True, "message": "자동화 중지됨"}
+    return {"success": False, "message": "실행 중이 아닙니다"}
+
+
+@app.get("/api/auto/status")
+async def get_auto_status(request: Request):
+    """자동화 스케줄러 상태 조회"""
+    token = request.cookies.get("auth_token")
+    if not token or not verify_token(token):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    return {"success": True, **auto_scheduler.get_status()}
+
+
+@app.post("/api/auto/run-now")
+async def run_auto_now(request: Request, background_tasks: BackgroundTasks, mode: str = "analysis"):
+    """자동화 즉시 실행 (수동)
+    mode: analysis(분석만), conversion(변환만), both(둘 다)
+    """
+    token = request.cookies.get("auth_token")
+    if not token or not verify_token(token):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    def run_once():
+        if mode in ("analysis", "both"):
+            auto_scheduler._log("수동 분석 시작")
+            auto_scheduler._run_analysis()
+            auto_scheduler._log("수동 분석 완료")
+        if mode in ("conversion", "both"):
+            auto_scheduler._log("수동 영상 변환 시작")
+            auto_scheduler._run_midnight_conversion()
+            auto_scheduler._log("수동 영상 변환 완료")
+
+    background_tasks.add_task(run_once)
+    mode_text = {"analysis": "분석", "conversion": "영상 변환", "both": "분석 + 영상 변환"}
+    return {"success": True, "message": f"{mode_text.get(mode, '분석')} 즉시 실행 시작"}
 
 
 def analyze_images_task(camera: str, date: str, task_id: str):
@@ -1159,7 +1635,15 @@ def analyze_images_task(camera: str, date: str, task_id: str):
 
         # 완료
         task_manager.update_task(task_id, status='completed', progress=total_images, detections=detections_count)
-        task_manager.add_log(task_id, f"완료! 탐지: 고양이:{detections_count['cat']} 개:{detections_count['dog']} 사람:{detections_count['person']} 차:{detections_count['car']}")
+        task_manager.add_log(task_id, f"분석 완료! 고양이:{detections_count['cat']} 개:{detections_count['dog']} 사람:{detections_count['person']} 차:{detections_count['car']}")
+
+        # 자동 영상 변환
+        task_manager.add_log(task_id, "영상 변환 시작...")
+        try:
+            convert_images_to_video(date, camera, resize_720p=True)
+            task_manager.add_log(task_id, "영상 변환 완료!")
+        except Exception as ve:
+            task_manager.add_log(task_id, f"영상 변환 실패: {str(ve)}")
 
     except Exception as e:
         task_manager.update_task(task_id, status='failed')

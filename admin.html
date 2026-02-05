@@ -1343,10 +1343,7 @@
 
                 <!-- 탭 -->
                 <div class="admin-tabs">
-                    <button class="admin-tab active" data-tab="timelapse">
-                        <i class="fas fa-video"></i> 타임랩스
-                    </button>
-                    <button class="admin-tab" data-tab="analyze">
+                    <button class="admin-tab active" data-tab="analyze">
                         <i class="fas fa-brain"></i> 객체 분석
                     </button>
                     <button class="admin-tab" data-tab="gallery">
@@ -1354,116 +1351,28 @@
                     </button>
                 </div>
 
-                <!-- 타임랩스 탭 -->
-                <div class="tab-content active" id="tab-timelapse">
-                    <!-- 공개 카메라 선택 -->
-                    <div class="admin-card">
-                        <h3><i class="fas fa-eye"></i> 공개 카메라 선택 (최대 3개)</h3>
-                        <div class="camera-select-grid" id="camera-select">
-                            <!-- 동적 생성 -->
-                        </div>
-                        <button class="convert-btn" style="margin-top: 1rem;" onclick="savePublicCameras()">
-                            <i class="fas fa-save"></i> 설정 저장
-                        </button>
-                        <div class="status-message" id="camera-status"></div>
-                    </div>
-
-                    <!-- 동영상 변환 -->
-                    <div class="admin-card">
-                        <h3><i class="fas fa-film"></i> 동영상 변환</h3>
-                        <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
-                            이미지만 있고 동영상이 없는 날짜를 자동으로 찾아서 변환합니다.
-                        </p>
-                        <div class="convert-simple">
-                            <div class="form-group" style="margin-bottom:1rem">
-                                <label>카메라 선택</label>
-                                <select id="convert-camera" onchange="loadPendingDates()">
-                                    <option value="feed">메인 카메라</option>
-                                    <option value="west">서쪽 카메라</option>
-                                    <option value="roof">지붕 카메라</option>
-                                    <option value="conner">코너 카메라</option>
-                                </select>
-                            </div>
-                            <div class="pending-dates" id="pending-dates">
-                                <div style="padding:1rem;color:var(--color-text-muted);">로딩 중...</div>
-                            </div>
-                            <div class="checkbox-group" style="margin:1rem 0;">
-                                <input type="checkbox" id="delete-after-convert" checked>
-                                <label for="delete-after-convert">변환 후 원본 이미지 삭제 (저장소 절약)</label>
-                            </div>
-                            <button class="convert-btn" id="convert-all-btn" onclick="convertPendingDates()" style="width:100%;">
-                                <i class="fas fa-magic"></i> 대기 중인 날짜 모두 변환
-                            </button>
-                        </div>
-                        <div class="status-message" id="convert-status"></div>
-                    </div>
-
-                    <!-- 변환 완료된 동영상 -->
-                    <div class="admin-card">
-                        <h3><i class="fas fa-video"></i> 변환 완료된 동영상</h3>
-                        <div class="form-group">
-                            <select id="video-camera" onchange="loadCompletedVideos()">
-                                <option value="feed">메인 카메라</option>
-                                <option value="west">서쪽 카메라</option>
-                                <option value="roof">지붕 카메라</option>
-                                <option value="conner">코너 카메라</option>
-                            </select>
-                        </div>
-                        <div class="video-list" id="video-list">
-                            로딩 중...
-                        </div>
-                        <div id="resize-section" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border);">
-                            <p style="color:var(--color-text-muted);font-size:0.85rem;margin-bottom:0.75rem;">
-                                <i class="fas fa-compress"></i> 기존 동영상을 720p로 리사이즈하여 저장 공간을 절약합니다.
-                            </p>
-                            <button class="convert-btn" id="resize-all-btn" onclick="resizeAllVideos()" style="width:100%;background:#ff9800;">
-                                <i class="fas fa-compress-arrows-alt"></i> 기존 동영상 일괄 720p 리사이즈
-                            </button>
-                        </div>
-                        <div class="status-message" id="resize-status"></div>
-                    </div>
-                </div>
-
                 <!-- 객체 분석 탭 -->
-                <div class="tab-content" id="tab-analyze">
+                <div class="tab-content active" id="tab-analyze">
                     <div class="admin-card">
                         <h3><i class="fas fa-brain"></i> YOLOv8 객체 분석</h3>
-                        <p id="analyze-description" style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
-                            <i class="fas fa-images" style="color:var(--color-primary);"></i>
-                            이미지를 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
-                            <small>* 파일명에서 타임스탬프를 추출합니다.</small>
+                        <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
+                            이미지를 분석하여 고양이, 개, 사람, 자동차를 탐지하고,<br>
+                            분석 완료 후 자동으로 타임랩스 영상을 생성합니다.
                         </p>
-                        <div class="form-group">
-                            <label>분석 소스</label>
-                            <div style="display:flex; gap:1rem; margin-bottom:0.5rem;">
-                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                                    <input type="radio" name="analyze-source" value="images" checked onchange="onAnalyzeSourceChange()">
-                                    <i class="fas fa-images"></i> 이미지
-                                </label>
-                                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                                    <input type="radio" name="analyze-source" value="video" onchange="onAnalyzeSourceChange()">
-                                    <i class="fas fa-video"></i> 동영상
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>분석 카메라</label>
-                            <select id="analyze-camera" onchange="loadAnalyzeDates()">
+                        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem;">
+                            <select id="analyze-camera" onchange="loadAnalyzeDates()" style="padding:8px 12px;">
                                 <option value="feed">메인 카메라</option>
                                 <option value="west">서쪽 카메라</option>
                                 <option value="roof">지붕 카메라</option>
                                 <option value="conner">코너 카메라</option>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>분석할 날짜</label>
-                            <select id="analyze-date">
+                            <select id="analyze-date" style="padding:8px 12px; min-width:150px;">
                                 <option value="">로딩 중...</option>
                             </select>
+                            <button class="convert-btn" id="analyze-btn" onclick="runAnalysis()" style="padding:8px 20px;">
+                                <i class="fas fa-play"></i> 분석 + 변환
+                            </button>
                         </div>
-                        <button class="convert-btn" id="analyze-btn" onclick="runAnalysis()" style="width:100%;">
-                            <i class="fas fa-play"></i> 분석 시작
-                        </button>
                         <div class="status-message" id="analyze-status"></div>
 
                         <!-- 분석 진행 상황 GUI -->
@@ -1481,7 +1390,7 @@
                             </div>
                             <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.85rem; color:var(--color-text-muted);">
                                 <span id="analyze-progress-current">현재: -</span>
-                                <span id="analyze-progress-count">0 / 0 프레임</span>
+                                <span id="analyze-progress-count">0 / 0 이미지</span>
                             </div>
                             <div id="analyze-progress-stats" style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--color-border); display:none;">
                                 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.5rem; text-align:center;">
@@ -1491,6 +1400,88 @@
                                     <div><i class="fas fa-car" style="color:#a29bfe;"></i> <span id="analyze-car-count">0</span></div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- 자동화 섹션 -->
+                    <div style="background:var(--color-bg-light);border:1px solid var(--color-border);border-radius:12px;padding:1.5rem;margin-top:1rem;">
+                        <h3 style="margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                            <i class="fas fa-robot" style="color:var(--color-primary);"></i> 자동 분석 스케줄러
+                        </h3>
+                        <p style="color:var(--color-text-muted);margin-bottom:1rem;font-size:0.9rem;">
+                            <strong>분석:</strong> 설정된 주기로 오늘/어제 이미지 분석<br>
+                            <strong>영상 변환:</strong> 매일 자정에 이전 날짜들만 변환 (당일은 사진으로 유지)
+                        </p>
+                        <div id="auto-status" style="padding:1rem;background:var(--color-bg);border-radius:8px;margin-bottom:1rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                <span style="font-weight:600;">상태</span>
+                                <span id="auto-status-badge" style="padding:4px 12px;border-radius:12px;font-size:0.8rem;background:#ff6b6b;">중지됨</span>
+                            </div>
+                            <div style="font-size:0.85rem;color:var(--color-text-muted);">
+                                <div>마지막 분석: <span id="auto-last-run">-</span></div>
+                                <div>다음 분석: <span id="auto-next-run">-</span></div>
+                                <div>영상 변환: <span id="auto-conversion-schedule">매일 00:00</span></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:1rem;">
+                            <label style="font-size:0.9rem;">분석 주기:</label>
+                            <select id="auto-interval" style="padding:8px;border-radius:6px;background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-text);">
+                                <option value="30">30분</option>
+                                <option value="60" selected>1시간</option>
+                                <option value="120">2시간</option>
+                                <option value="360">6시간</option>
+                                <option value="720">12시간</option>
+                                <option value="1440">24시간</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;">
+                            <button id="auto-start-btn" onclick="startAutoScheduler()" style="flex:1;padding:10px;background:var(--color-primary);border:none;border-radius:8px;color:white;cursor:pointer;">
+                                <i class="fas fa-play"></i> 시작
+                            </button>
+                            <button id="auto-stop-btn" onclick="stopAutoScheduler()" style="flex:1;padding:10px;background:#ff6b6b;border:none;border-radius:8px;color:white;cursor:pointer;" disabled>
+                                <i class="fas fa-stop"></i> 중지
+                            </button>
+                            <button onclick="runAutoNow('analysis')" style="padding:10px 15px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);cursor:pointer;" title="분석 즉시 실행">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button onclick="runAutoNow('conversion')" style="padding:10px 15px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:8px;color:var(--color-text);cursor:pointer;" title="영상 변환 즉시 실행">
+                                <i class="fas fa-video"></i>
+                            </button>
+                        </div>
+                        <div id="auto-logs" style="margin-top:1rem;max-height:150px;overflow-y:auto;font-size:0.8rem;background:var(--color-bg);border-radius:6px;padding:0.5rem;display:none;">
+                        </div>
+                    </div>
+
+                    <!-- 작업 히스토리 섹션 -->
+                    <div style="background:var(--color-bg-light);border:1px solid var(--color-border);border-radius:12px;padding:1.5rem;margin-top:1rem;">
+                        <h3 style="margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;justify-content:space-between;">
+                            <span><i class="fas fa-history" style="color:var(--color-primary);"></i> 작업 히스토리 (7일)</span>
+                            <button onclick="loadJobHistory()" style="padding:5px 10px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:6px;color:var(--color-text);cursor:pointer;font-size:0.8rem;">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                        </h3>
+                        <!-- 요약 통계 -->
+                        <div id="job-summary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem;">
+                            <div style="padding:0.75rem;background:var(--color-bg);border-radius:8px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:600;color:#4fc3f7;" id="job-analysis-completed">0</div>
+                                <div style="font-size:0.75rem;color:var(--color-text-muted);">분석 완료</div>
+                            </div>
+                            <div style="padding:0.75rem;background:var(--color-bg);border-radius:8px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:600;color:#81c784;" id="job-conversion-completed">0</div>
+                                <div style="font-size:0.75rem;color:var(--color-text-muted);">변환 완료</div>
+                            </div>
+                            <div style="padding:0.75rem;background:var(--color-bg);border-radius:8px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:600;color:#ba68c8;" id="job-total-images">0</div>
+                                <div style="font-size:0.75rem;color:var(--color-text-muted);">처리 이미지</div>
+                            </div>
+                            <div style="padding:0.75rem;background:var(--color-bg);border-radius:8px;text-align:center;">
+                                <div style="font-size:1.2rem;font-weight:600;color:#ffb74d;" id="job-total-detections">0</div>
+                                <div style="font-size:0.75rem;color:var(--color-text-muted);">탐지 객체</div>
+                            </div>
+                        </div>
+                        <!-- 히스토리 목록 -->
+                        <div id="job-history-list" style="max-height:200px;overflow-y:auto;font-size:0.8rem;">
+                            <div style="text-align:center;color:var(--color-text-muted);padding:1rem;">로딩 중...</div>
                         </div>
                     </div>
 
@@ -1674,6 +1665,7 @@
             loadCompletedVideos();
             loadAnalyzeVideos();
             initDashboard();
+            initAutoScheduler();
             loadGalleryItems();
         }
 
@@ -2030,6 +2022,146 @@
             if (e.key === 'Escape') closeModal();
         });
 
+        // ==================== 자동화 스케줄러 ====================
+        let autoStatusInterval = null;
+
+        async function loadAutoStatus() {
+            try {
+                const res = await fetch('/api/auto/status');
+                const data = await res.json();
+                if (data.success) {
+                    updateAutoUI(data);
+                }
+            } catch (e) {
+                console.error('Auto status error:', e);
+            }
+        }
+
+        function updateAutoUI(data) {
+            const badge = document.getElementById('auto-status-badge');
+            const startBtn = document.getElementById('auto-start-btn');
+            const stopBtn = document.getElementById('auto-stop-btn');
+            const logsDiv = document.getElementById('auto-logs');
+
+            if (data.running) {
+                badge.textContent = '실행 중';
+                badge.style.background = '#00ff88';
+                badge.style.color = '#000';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            } else {
+                badge.textContent = '중지됨';
+                badge.style.background = '#ff6b6b';
+                badge.style.color = '#fff';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+
+            document.getElementById('auto-last-run').textContent =
+                data.last_run ? new Date(data.last_run).toLocaleString('ko-KR') : '-';
+            document.getElementById('auto-next-run').textContent =
+                data.next_run ? new Date(data.next_run).toLocaleString('ko-KR') : '-';
+
+            // 로그 표시
+            if (data.logs && data.logs.length > 0) {
+                logsDiv.style.display = 'block';
+                logsDiv.innerHTML = data.logs.slice(-10).map(l =>
+                    `<div style="padding:2px 0;border-bottom:1px solid var(--color-border);"><span style="color:var(--color-primary);">${l.time.split(' ')[1] || l.time}</span> ${l.message}</div>`
+                ).join('');
+                logsDiv.scrollTop = logsDiv.scrollHeight;
+            }
+        }
+
+        async function startAutoScheduler() {
+            const interval = document.getElementById('auto-interval').value;
+            try {
+                const res = await fetch(`/api/auto/start?interval=${interval}`, { method: 'POST' });
+                const data = await res.json();
+                showModal(data.success ? '자동화 시작됨' : data.message, data.success ? 'success' : 'error');
+                loadAutoStatus();
+            } catch (e) {
+                showModal('오류: ' + e.message, 'error');
+            }
+        }
+
+        async function stopAutoScheduler() {
+            try {
+                const res = await fetch('/api/auto/stop', { method: 'POST' });
+                const data = await res.json();
+                showModal(data.success ? '자동화 중지됨' : data.message, data.success ? 'success' : 'error');
+                loadAutoStatus();
+            } catch (e) {
+                showModal('오류: ' + e.message, 'error');
+            }
+        }
+
+        async function runAutoNow(mode = 'analysis') {
+            const modeText = { analysis: '분석', conversion: '영상 변환', both: '분석+변환' };
+            try {
+                const res = await fetch(`/api/auto/run-now?mode=${mode}`, { method: 'POST' });
+                const data = await res.json();
+                showModal(data.success ? `${modeText[mode]} 즉시 실행 시작` : data.message, data.success ? 'success' : 'error');
+                setTimeout(loadAutoStatus, 2000);
+                setTimeout(loadJobHistory, 5000);
+            } catch (e) {
+                showModal('오류: ' + e.message, 'error');
+            }
+        }
+
+        function initAutoScheduler() {
+            loadAutoStatus();
+            loadJobHistory();
+            // 10초마다 상태 갱신
+            autoStatusInterval = setInterval(loadAutoStatus, 10000);
+            // 30초마다 히스토리 갱신
+            setInterval(loadJobHistory, 30000);
+        }
+
+        async function loadJobHistory() {
+            try {
+                const res = await fetch('/api/dashboard/job-history?days=7');
+                const data = await res.json();
+                if (!data.success) return;
+
+                // 요약 업데이트
+                let analysisCompleted = 0, conversionCompleted = 0, totalImages = 0, totalDetections = 0;
+                (data.summary || []).forEach(s => {
+                    if (s.job_type === 'analysis' && s.status === 'completed') {
+                        analysisCompleted = s.count;
+                        totalImages += s.total_images || 0;
+                        totalDetections += s.total_detections || 0;
+                    } else if (s.job_type === 'conversion' && s.status === 'completed') {
+                        conversionCompleted = s.count;
+                    }
+                });
+                document.getElementById('job-analysis-completed').textContent = analysisCompleted;
+                document.getElementById('job-conversion-completed').textContent = conversionCompleted;
+                document.getElementById('job-total-images').textContent = totalImages.toLocaleString();
+                document.getElementById('job-total-detections').textContent = totalDetections.toLocaleString();
+
+                // 히스토리 목록
+                const listDiv = document.getElementById('job-history-list');
+                if (!data.history || data.history.length === 0) {
+                    listDiv.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:1rem;">작업 기록 없음</div>';
+                    return;
+                }
+
+                listDiv.innerHTML = data.history.slice(0, 30).map(h => {
+                    const icon = h.job_type === 'analysis' ? 'fa-search' : 'fa-video';
+                    const color = h.status === 'completed' ? '#81c784' : h.status === 'failed' ? '#ff6b6b' : '#ffb74d';
+                    const statusText = h.status === 'completed' ? '완료' : h.status === 'failed' ? '실패' : '진행중';
+                    return `<div style="padding:0.5rem;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:0.5rem;">
+                        <i class="fas ${icon}" style="color:var(--color-primary);width:16px;"></i>
+                        <span style="flex:1;">${h.target_date}</span>
+                        <span style="color:${color};font-size:0.75rem;">${statusText}</span>
+                        <span style="color:var(--color-text-muted);font-size:0.7rem;">${h.created_at.split(' ')[1]}</span>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                console.error('작업 히스토리 로드 실패:', e);
+            }
+        }
+
         // ==================== 대시보드 ====================
         let dashboardRefreshInterval = null;
 
@@ -2314,72 +2446,28 @@
         }
 
         // ==================== 객체 분석 ====================
-        function getAnalyzeSource() {
-            const radios = document.getElementsByName('analyze-source');
-            for (const r of radios) {
-                if (r.checked) return r.value;
-            }
-            return 'images';
-        }
-
-        function onAnalyzeSourceChange() {
-            const source = getAnalyzeSource();
-            const desc = document.getElementById('analyze-description');
-
-            if (source === 'images') {
-                desc.innerHTML = `
-                    <i class="fas fa-images" style="color:var(--color-primary);"></i>
-                    이미지를 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
-                    <small>* 파일명에서 타임스탬프를 추출합니다.</small>
-                `;
-            } else {
-                desc.innerHTML = `
-                    <i class="fas fa-video" style="color:var(--color-primary);"></i>
-                    동영상을 분석하여 고양이, 개, 사람, 자동차를 탐지합니다.<br>
-                    <small>* 1초당 1프레임씩 분석하여 효율적으로 처리됩니다.</small>
-                `;
-            }
-
-            loadAnalyzeDates();
-        }
-
         async function loadAnalyzeDates() {
             const camera = document.getElementById('analyze-camera').value;
-            const source = getAnalyzeSource();
             const select = document.getElementById('analyze-date');
 
             select.innerHTML = '<option value="">로딩 중...</option>';
 
             try {
-                let apiUrl, label;
-                if (source === 'images') {
-                    apiUrl = `/api/feed/image-dates?camera=${camera}`;
-                    label = '이미지';
-                } else {
-                    apiUrl = `/api/feed/videos?camera=${camera}`;
-                    label = '동영상';
-                }
-
-                const res = await fetch(apiUrl);
+                const res = await fetch(`/api/feed/image-dates?camera=${camera}`);
                 const data = await res.json();
 
-                const dates = source === 'images' ? data.dates : data.videos;
-
-                if (data.success && dates && dates.length > 0) {
-                    select.innerHTML = dates.map(d => {
+                if (data.success && data.dates && data.dates.length > 0) {
+                    select.innerHTML = data.dates.map(d => {
                         const formatted = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
-                        return `<option value="${d}">${formatted} (${label})</option>`;
+                        return `<option value="${d}">${formatted}</option>`;
                     }).join('');
                 } else {
-                    select.innerHTML = `<option value="">${label} 없음</option>`;
+                    select.innerHTML = '<option value="">이미지 없음</option>';
                 }
             } catch (e) {
                 select.innerHTML = '<option value="">로드 실패</option>';
             }
         }
-
-        // 호환성을 위한 별칭
-        const loadAnalyzeVideos = loadAnalyzeDates;
 
         // 초기 로드
         document.addEventListener('DOMContentLoaded', () => {
@@ -2394,7 +2482,6 @@
         async function runAnalysis() {
             const camera = document.getElementById('analyze-camera').value;
             const date = document.getElementById('analyze-date').value;
-            const source = getAnalyzeSource();
             const btn = document.getElementById('analyze-btn');
             const progressContainer = document.getElementById('analyze-progress-container');
 
@@ -2404,31 +2491,25 @@
             }
 
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 시작 중...';
-            const sourceLabel = source === 'images' ? '이미지' : '동영상';
-            showStatus('analyze-status', `${sourceLabel} 분석을 시작합니다...`, 'info');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 + 변환 중...';
+            showStatus('analyze-status', '이미지 분석을 시작합니다...', 'info');
 
             // 진행 상황 GUI 초기화 및 표시
             progressContainer.style.display = 'block';
-            document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 진행 중...';
+            document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-spinner fa-spin"></i> 분석 + 변환 진행 중...';
             document.getElementById('analyze-progress-percent').textContent = '0%';
             document.getElementById('analyze-progress-bar').style.width = '0%';
             document.getElementById('analyze-progress-current').textContent = '현재: 시작 중...';
-            document.getElementById('analyze-progress-count').textContent = source === 'images' ? '0 / 0 이미지' : '0 / 0 프레임';
+            document.getElementById('analyze-progress-count').textContent = '0 / 0 이미지';
             document.getElementById('analyze-progress-stats').style.display = 'none';
 
             try {
-                // 소스에 따라 다른 API 호출
-                const apiUrl = source === 'images'
-                    ? `/api/analyze/images/${date}?camera=${camera}`
-                    : `/api/analyze/${date}?camera=${camera}`;
-
-                const res = await fetch(apiUrl, { method: 'POST' });
+                const res = await fetch(`/api/analyze/images/${date}?camera=${camera}`, { method: 'POST' });
                 const data = await res.json();
 
                 if (data.success) {
                     currentAnalyzeTaskId = data.task_id;
-                    showStatus('analyze-status', `분석 시작됨 (작업 ID: ${data.task_id})`, 'success');
+                    showStatus('analyze-status', `분석 + 변환 시작됨 (작업 ID: ${data.task_id})`, 'success');
 
                     // 진행 상황 폴링 시작
                     if (analyzeProgressInterval) clearInterval(analyzeProgressInterval);
@@ -2437,13 +2518,13 @@
                     showStatus('analyze-status', data.error || data.detail || '분석 실패', 'error');
                     progressContainer.style.display = 'none';
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> 분석 시작';
+                    btn.innerHTML = '<i class="fas fa-play"></i> 분석 + 변환';
                 }
             } catch (e) {
                 showStatus('analyze-status', '오류: ' + e.message, 'error');
                 progressContainer.style.display = 'none';
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-play"></i> 분석 시작';
+                btn.innerHTML = '<i class="fas fa-play"></i> 분석 + 변환';
             }
         }
 
@@ -2465,7 +2546,7 @@
                 // GUI 업데이트
                 document.getElementById('analyze-progress-percent').textContent = progress + '%';
                 document.getElementById('analyze-progress-bar').style.width = progress + '%';
-                document.getElementById('analyze-progress-count').textContent = `${task.progress} / ${task.total} 프레임`;
+                document.getElementById('analyze-progress-count').textContent = `${task.progress} / ${task.total} 이미지`;
 
                 if (task.current_item) {
                     document.getElementById('analyze-progress-current').textContent = `현재: ${task.current_item}`;
@@ -2509,14 +2590,14 @@
 
                     const btn = document.getElementById('analyze-btn');
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-play"></i> 분석 시작';
+                    btn.innerHTML = '<i class="fas fa-play"></i> 분석 + 변환';
 
                     if (task.status === 'completed') {
-                        document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-check-circle" style="color:#00ff88;"></i> 분석 완료!';
+                        document.getElementById('analyze-progress-title').innerHTML = '<i class="fas fa-check-circle" style="color:#00ff88;"></i> 분석 + 변환 완료!';
                         document.getElementById('analyze-progress-bar').style.background = 'linear-gradient(90deg, #00ff88, #00cc66)';
 
                         // 탐지 결과 요약 메시지
-                        let resultMsg = `분석 완료! 총 ${task.total}개 프레임 처리됨`;
+                        let resultMsg = `분석 + 변환 완료! 총 ${task.total}개 이미지 처리됨`;
                         if (task.detections) {
                             const d = task.detections;
                             const total = (d.cat || 0) + (d.dog || 0) + (d.person || 0) + (d.car || 0);
