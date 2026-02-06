@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, List
 import io
 import subprocess
+import re
 import tempfile
 import shutil
 import mysql.connector
@@ -94,6 +95,14 @@ class TaskManager:
                 del self.tasks[task_id]
 
 task_manager = TaskManager()
+
+# 카메라별 경로 (AutoScheduler에서 사용)
+CAMERA_PATHS = {
+    "feed": {"path": "/homes/ha/camFTP/feed", "video": "/homes/ha/camFTP/feed/videos"},
+    "west": {"path": "/homes/ha/camFTP/west", "video": "/homes/ha/camFTP/west/videos"},
+    "roof": {"path": "/homes/ha/camFTP/roof", "video": "/homes/ha/camFTP/roof/videos"},
+    "conner": {"path": "/homes/ha/camFTP/conner", "video": "/homes/ha/camFTP/conner/videos"},
+}
 
 
 # ==================== 자동화 스케줄러 ====================
@@ -407,7 +416,7 @@ auto_scheduler = AutoScheduler()
 app = FastAPI(
     title="SSIRN - 지기술(G-TECH)",
     description="지기술 공식 웹사이트 API",
-    version="2.4.2"
+    version="2.4.3"
 )
 
 # 설정
@@ -2167,57 +2176,85 @@ async def get_system_status():
             disk_free = parts[3]
             disk_percent = int(parts[4].replace('%', ''))
 
-        # 웹앱 서비스 상태 (8000, 8001, 8002 포트)
-        webapp_ports = [
-            {"port": 8000, "name": "miniLMS"},
-            {"port": 8001, "name": "원주산삼"},
-            {"port": 8002, "name": "SSIRN"}
-        ]
+        # 웹앱 서비스 상태 (8000~8099 포트 자동 스캔)
+        known_names = {
+            8000: "miniLMS",
+            8001: "원주산삼",
+            8002: "SSIRN",
+            8003: "SSIRN-DEV"
+        }
         services = []
 
-        for wp in webapp_ports:
-            port = wp["port"]
+        # ss로 8000번대 LISTEN 포트 일괄 조회
+        try:
+            ss_result = subprocess.run(
+                ["ss", "-tlnp"],
+                capture_output=True, text=True, timeout=5
+            )
+            active_ports = set()
+            for line in ss_result.stdout.split('\n'):
+                if 'LISTEN' not in line:
+                    continue
+                # *:80XX 또는 0.0.0.0:80XX 또는 127.0.0.1:80XX 패턴
+                port_match = re.search(r'(?:\*|0\.0\.0\.0|127\.0\.0\.1|\[::\]):(\d+)', line)
+                if port_match:
+                    p = int(port_match.group(1))
+                    if 8000 <= p <= 8099:
+                        active_ports.add(p)
+        except:
+            active_ports = set()
+
+        # known_names에 있는 포트는 항상 표시 (down 상태도)
+        all_ports = sorted(set(known_names.keys()) | active_ports)
+
+        for port in all_ports:
+            # 이름: known_names에 있으면 사용, 없으면 자동 감지
+            name = known_names.get(port)
+            if not name:
+                # systemd 서비스명에서 이름 추출 시도
+                svc_name = _find_systemd_service(port)
+                name = svc_name if svc_name else f"서비스-{port}"
+
             service = {
                 "port": port,
-                "name": wp["name"],
-                "status": "down",
+                "name": name,
+                "status": "running" if port in active_ports else "down",
                 "pid": None,
                 "cpu": "0",
                 "mem": "0",
                 "connections": 0
             }
 
-            # 포트 사용 중인 프로세스 확인
-            try:
-                lsof_result = subprocess.run(
-                    ["lsof", "-i", f":{port}", "-t"],
-                    capture_output=True, text=True, timeout=3
-                )
-                pids = lsof_result.stdout.strip().split('\n')
-                if pids and pids[0]:
-                    service["status"] = "running"
-                    service["pid"] = pids[0]
-
-                    # CPU/메모리 사용량
-                    ps_result = subprocess.run(
-                        ["ps", "-p", pids[0], "-o", "%cpu,%mem", "--no-headers"],
+            if port in active_ports:
+                try:
+                    lsof_result = subprocess.run(
+                        ["lsof", "-i", f":{port}", "-t"],
                         capture_output=True, text=True, timeout=3
                     )
-                    if ps_result.stdout.strip():
-                        parts = ps_result.stdout.strip().split()
-                        if len(parts) >= 2:
-                            service["cpu"] = parts[0]
-                            service["mem"] = parts[1]
+                    pids = lsof_result.stdout.strip().split('\n')
+                    if pids and pids[0]:
+                        service["pid"] = pids[0]
 
-                    # 연결 수 (트래픽 지표)
-                    netstat_result = subprocess.run(
-                        ["ss", "-tn", f"sport = :{port}"],
-                        capture_output=True, text=True, timeout=3
-                    )
-                    connections = len([l for l in netstat_result.stdout.split('\n') if 'ESTAB' in l])
-                    service["connections"] = connections
-            except:
-                pass
+                        # CPU/메모리 사용량
+                        ps_result = subprocess.run(
+                            ["ps", "-p", pids[0], "-o", "%cpu,%mem", "--no-headers"],
+                            capture_output=True, text=True, timeout=3
+                        )
+                        if ps_result.stdout.strip():
+                            parts = ps_result.stdout.strip().split()
+                            if len(parts) >= 2:
+                                service["cpu"] = parts[0]
+                                service["mem"] = parts[1]
+
+                        # 연결 수 (트래픽 지표)
+                        netstat_result = subprocess.run(
+                            ["ss", "-tn", f"sport = :{port}"],
+                            capture_output=True, text=True, timeout=3
+                        )
+                        connections = len([l for l in netstat_result.stdout.split('\n') if 'ESTAB' in l])
+                        service["connections"] = connections
+                except:
+                    pass
 
             services.append(service)
 
@@ -2242,6 +2279,31 @@ async def get_system_status():
         return {"success": False, "error": str(e)}
 
 
+def _find_systemd_service(port: int) -> str | None:
+    """포트 번호로 systemd 서비스명 자동 감지"""
+    try:
+        # lsof로 해당 포트의 PID 조회
+        lsof_result = subprocess.run(
+            ["lsof", "-i", f":{port}", "-t"],
+            capture_output=True, text=True, timeout=5
+        )
+        pid = lsof_result.stdout.strip().split('\n')[0]
+        if not pid:
+            return None
+
+        # PID로 systemd 서비스 유닛 조회
+        cgroup_result = subprocess.run(
+            ["cat", f"/proc/{pid}/cgroup"],
+            capture_output=True, text=True, timeout=3
+        )
+        match = re.search(r'/([^/]+)\.service', cgroup_result.stdout)
+        if match:
+            return match.group(1)
+    except:
+        pass
+    return None
+
+
 # ==================== 서비스 제어 API ====================
 @app.post("/api/system/service/{port}/stop")
 async def stop_service(port: int):
@@ -2251,13 +2313,12 @@ async def stop_service(port: int):
         if port == 8002:
             return {"success": False, "error": "현재 실행 중인 서비스는 정지할 수 없습니다"}
 
-        # 서비스 이름 매핑 (systemd)
-        service_map = {
-            8000: "minilms",
-            8001: "wonjusansam"
-        }
+        # 8000번대 포트만 허용
+        if not (8000 <= port <= 8099):
+            return {"success": False, "error": f"허용되지 않는 포트: {port}"}
 
-        service_name = service_map.get(port)
+        # systemd 서비스명 자동 감지
+        service_name = _find_systemd_service(port)
         if service_name:
             # systemd 서비스 정지 시도
             result = subprocess.run(
@@ -2291,20 +2352,18 @@ async def stop_service(port: int):
 async def restart_service(port: int):
     """서비스 재시작 (systemd 서비스 기준)"""
     try:
-        # 서비스 이름 매핑
-        service_map = {
-            8000: "minilms",
-            8001: "wonjusansam",
-            8002: "ssirn"
-        }
-
-        service_name = service_map.get(port)
-        if not service_name:
-            return {"success": False, "error": f"알 수 없는 포트: {port}"}
+        # 8000번대 포트만 허용
+        if not (8000 <= port <= 8099):
+            return {"success": False, "error": f"허용되지 않는 포트: {port}"}
 
         # 자기 자신(8002)은 재시작 불가 (연결 끊김)
         if port == 8002:
             return {"success": False, "error": "현재 실행 중인 서비스는 여기서 재시작할 수 없습니다"}
+
+        # systemd 서비스명 자동 감지
+        service_name = _find_systemd_service(port)
+        if not service_name:
+            return {"success": False, "error": f"포트 {port}에 대한 systemd 서비스를 찾을 수 없습니다. 수동 재시작 필요"}
 
         # systemctl restart 시도
         result = subprocess.run(
@@ -2315,8 +2374,7 @@ async def restart_service(port: int):
         if result.returncode == 0:
             return {"success": True, "message": f"{service_name} 서비스를 재시작했습니다"}
         else:
-            # systemd 서비스가 아닌 경우, 직접 kill 후 안내
-            return {"success": False, "error": f"systemd 서비스가 아닙니다. 수동 재시작 필요: {result.stderr}"}
+            return {"success": False, "error": f"재시작 실패: {result.stderr}"}
 
     except Exception as e:
         return {"success": False, "error": str(e)}
